@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — fundação do design system (FASE 01/02).
+ * Reformulação visual profunda (pedido direto do usuário, fora do fluxo de
+ * fases): experiência majoritariamente DARK (~85%), com uma escada de
+ * superfícies pretas (nao um preto chapado unico) separando as seções,
+ * accent azul + roxo em brilhos/detalhes (nunca como cor dominante),
+ * inspirada no acabamento tecnologico/editorial do framer.com.
+ *
+ * ATE A REFORMULACAO DESTA SESSAO: o fundo escuro so existia dentro de
+ * `.s360-invert`, uma classe local aplicada a APENAS 2 das 9 secoes
+ * (Problema e CTA final) — por isso a pagina inteira parecia branca: os
+ * tokens `:root` (usados por padrao em toda parte) eram claros. A correcao
+ * foi inverter a base: os tokens `:root` abaixo SAO os valores escuros —
+ * nao existe mais uma classe "invert" separada, o escuro e o padrao real
+ * da pagina inteira. Ver PLANEJAMENTO.md, seção 14.19.
+ *
+ * Identidade visual OFICIAL da Suite360 Films (logo definitiva) segue
+ * provisória até a marca oficial ser fechada — ver PLANEJAMENTO.md,
+ * seção 14.18.
+ */
+:root {
+  /* Escada de pretos — separa secoes sem recorrer ao mesmo preto chapado. */
+  --s360-background: #050505;
+  --s360-background-alt: #080808;
+  --s360-muted: #0d0d0f;
+  --s360-card: #16161b;
+  --s360-card-hover: #1b1b22;
+
+  --s360-foreground: #f7f7f8;
+  --s360-foreground-secondary: #d4d4d8;
+  --s360-muted-foreground: #a1a1aa;
+  --s360-foreground-subtle: #71717a;
+
+  --s360-border: rgba(255, 255, 255, 0.1);
+  --s360-border-strong: rgba(255, 255, 255, 0.18);
+
+  /* Accent funcional: azul da marca — usado com moderacao (CTAs, selecao,
+     progresso, foco, brilhos), nunca como cor dominante da interface. Hover
+     CLAREIA (nao escurece) sobre fundo escuro. */
+  --s360-primary: #0866ff;
+  --s360-primary-hover: #4385ff;
+  --s360-primary-foreground: #ffffff;
+
+  /* Realce sutil sobre superficie escura: navy translucido + texto azul
+     claro (accent-foreground precisa ser CLARO aqui, ao contrario da versao
+     clara anterior). */
+  --s360-accent: #10233d;
+  --s360-accent-foreground: #bcd6ff;
+
+  --s360-card-foreground: #f7f7f8;
+
+  --s360-danger: #f87171;
+  --s360-danger-foreground: #050505;
+
+  /* Accent secundario (roxo) — só em brilhos/bordas ativas/detalhes, nunca
+     em botoes primarios ou fundos dominantes (instrucao explicita: "nao
+     transforme a pagina inteira em um gradiente"). */
+  --s360-purple: #8b5cf6;
+  --s360-purple-luminous: #a855f7;
+  --s360-blue-luminous: #4385ff;
+  --s360-glow-blue: rgba(8, 102, 255, 0.25);
+  --s360-glow-purple: rgba(139, 92, 246, 0.22);
+
+  /* Escala de raio: 12px botoes/elementos internos pequenos, 18px elementos
+     internos maiores, 28px paineis principais. */
+  --s360-radius-sm: 0.5rem;
+  --s360-radius-md: 0.75rem;
+  --s360-radius-lg: 1.125rem;
+  --s360-radius-xl: 1.75rem;
+
+  /* 1360px — teto da faixa pedida (1240-1360px), para o conteudo ocupar a
+     viewport como uma landing premium em vez de uma coluna estreita. */
+  --s360-container-max-width: 85rem;
+}
+
+@theme inline {
+  --color-background: var(--s360-background);
+  --color-background-alt: var(--s360-background-alt);
+  --color-foreground: var(--s360-foreground);
+  --color-muted: var(--s360-muted);
+  --color-muted-foreground: var(--s360-muted-foreground);
+  --color-foreground-secondary: var(--s360-foreground-secondary);
+  --color-foreground-subtle: var(--s360-foreground-subtle);
+  --color-border: var(--s360-border);
+  --color-border-strong: var(--s360-border-strong);
+  --color-primary: var(--s360-primary);
+  --color-primary-hover: var(--s360-primary-hover);
+  --color-primary-foreground: var(--s360-primary-foreground);
+  --color-accent: var(--s360-accent);
+  --color-accent-foreground: var(--s360-accent-foreground);
+  --color-card: var(--s360-card);
+  --color-card-hover: var(--s360-card-hover);
+  --color-card-foreground: var(--s360-card-foreground);
+  --color-danger: var(--s360-danger);
+  --color-danger-foreground: var(--s360-danger-foreground);
+  --color-purple: var(--s360-purple);
+  --color-purple-luminous: var(--s360-purple-luminous);
+  --color-blue-luminous: var(--s360-blue-luminous);
+
+  --font-sans: var(--font-geist-sans);
+
+  --radius-sm: var(--s360-radius-sm);
+  --radius-md: var(--s360-radius-md);
+  --radius-lg: var(--s360-radius-lg);
+  --radius-xl: var(--s360-radius-xl);
+
+  /*
+   * Escala tipografica (mobile-first, fluida via clamp()). Reformulacao:
+   * escala real de landing premium — o titulo do Hero preenche a dobra em
+   * vez de ficar pequeno/centralizado num mar de espaco vazio.
+   */
+  --text-display: clamp(2.25rem, 1.4rem + 3.8vw, 4.75rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.025em;
+
+  --text-h1: clamp(2.75rem, 5vw, 4.25rem);
+  --text-h1--line-height: 1.05;
+  --text-h1--letter-spacing: -0.025em;
+
+  --text-h2: clamp(2.5rem, 4.5vw, 4.75rem);
+  --text-h2--line-height: 1.08;
+  --text-h2--letter-spacing: -0.02em;
+
+  --text-h3: clamp(1.5rem, 1.3rem + 0.9vw, 2rem);
+  --text-h3--line-height: 1.2;
+
+  --text-h4: 1.375rem;
+  --text-h4--line-height: 1.3;
+
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.6;
+
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.5;
+
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.4;
+
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.01em;
+
+  /*
+   * Sombras neutras (suaves, sem cor) para elevacao geral sobre fundo
+   * escuro. Brilhos coloridos (azul/roxo) sao tratados a parte, via
+   * `.s360-glow-*` abaixo — usados com moderacao, so em paineis/elementos
+   * principais, nunca em cards comuns.
+   */
+  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-medium:
+    0 8px 24px -8px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --shadow-elevated:
+    0 24px 64px -16px rgb(0 0 0 / 0.6), 0 8px 24px -8px rgb(0 0 0 / 0.4);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--s360-background);
+  color: var(--s360-foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/*
+ * Brilhos discretos (azul/roxo) — usados so em paineis principais (Hero,
+ * painel da Metodologia, moldura do Diagnostico, CTA final), nunca em cards
+ * comuns. Duas classes utilitarias para nao repetir a mesma sombra composta
+ * em varios componentes.
+ */
+.s360-glow-blue {
+  box-shadow:
+    0 0 60px -12px var(--s360-glow-blue),
+    0 0 120px -24px var(--s360-glow-blue);
+}
+
+.s360-glow-purple {
+  box-shadow:
+    0 0 60px -12px var(--s360-glow-purple),
+    0 0 120px -24px var(--s360-glow-purple);
+}
+
+/* Grid tecnico quase imperceptivel, usado no fundo do Hero e de paineis
+   grandes (linhas brancas translucidas sobre o preto profundo). */
+.s360-grid-texture {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Acessibilidade: respeita a preferencia do usuario por menos animacao (PLANEJAMENTO.md, secao 10) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

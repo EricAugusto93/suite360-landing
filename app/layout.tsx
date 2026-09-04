@@ -1,0 +1,123 @@
+import type { Metadata, Viewport } from "next";
+import { Geist } from "next/font/google";
+import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { WhatsAppFloatingButton } from "@/components/ui/WhatsAppFloatingButton";
+import { siteUrl } from "@/lib/site";
+import "./globals.css";
+
+/*
+ * Geist como fonte-base provisória: variável, performática via next/font (self-hosted),
+ * sensação tecnológica/premium compatível com a direção visual do playbook.
+ * Trocar quando a tipografia oficial da marca for definida (PLANEJAMENTO.md, secoes 6 e 14).
+ */
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Espelha --s360-background de app/globals.css (experiencia majoritariamente dark).
+  themeColor: "#050505",
+};
+
+// Revisada na FASE 10: menciona analise/otimizacao (nao so "presenca"),
+// mantendo marca + Perfil da Empresa no Google + diagnostico gratuito,
+// sem prometer ranking e sem keyword stuffing.
+const description =
+  "Suite360 Films — análise e otimização do Perfil da Empresa no Google. Diagnóstico gratuito e sem compromisso.";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: "Suite360 Films",
+  description,
+  alternates: {
+    canonical: "/",
+  },
+  // FASE 13: o favicon generico do create-next-app foi removido (nao ha
+  // simbolo isolado adequado a 32x32 na logo oficial ainda — PENDENCIA,
+  // ver PLANEJAMENTO.md secao 14.15). Um data URI vazio impede o
+  // navegador de tentar `/favicon.ico` por convencao (o que gera um 404
+  // real no console) sem inventar nenhum icone.
+  icons: { icon: "data:," },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: siteUrl,
+    siteName: "Suite360 Films",
+    title: "Suite360 Films",
+    description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Suite360 Films",
+    description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+/**
+ * JSON-LD minimo e 100% factual (FASE 10): so nome e URL, os unicos dados
+ * que ja temos com certeza. `Organization` foi deliberadamente descartado
+ * por exigir campos que nao temos ainda (logo, endereco, redes sociais) —
+ * ver PLANEJAMENTO.md, secao 14.10.
+ */
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Suite360 Films",
+  url: siteUrl,
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="pt-BR" className={`${geistSans.variable} antialiased`}>
+      <body className="flex min-h-screen flex-col">
+        {/*
+          Sentinela observada pelo Header (IntersectionObserver) para saber
+          se a pagina ainda esta no topo — o Header comeca transparente e
+          ganha fundo/blur assim que este elemento sai da viewport. Mais
+          leve que um listener de scroll (sem recalculo a cada frame).
+        */}
+        <div
+          id="header-scroll-sentinel"
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 h-px w-px"
+        />
+
+        {/*
+          Sem JavaScript, o Motion nunca hidrata e qualquer conteudo dentro
+          de <ScrollReveal> ficaria preso no estado inicial (opacity:0),
+          renderizado assim no HTML do servidor. Esta regra forca esse
+          conteudo a ficar visivel quando JS esta desabilitado — ver
+          components/ui/ScrollReveal.tsx e PLANEJAMENTO.md, secao 14.10.
+        */}
+        <noscript>
+          <style>{`.motion-reveal { opacity: 1 !important; transform: none !important; }`}</style>
+        </noscript>
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+
+        <Header />
+        <main className="flex flex-1 flex-col">{children}</main>
+        <Footer />
+        <WhatsAppFloatingButton />
+        <AnalyticsProvider />
+      </body>
+    </html>
+  );
+}
