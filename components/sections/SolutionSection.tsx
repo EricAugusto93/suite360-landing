@@ -19,25 +19,6 @@ export function SolutionSection() {
   return (
     <Section variant="alt">
       <Container className="flex flex-col items-center">
-        <ScrollReveal
-          variant="fade-up"
-          direction="left"
-          mobileDistance={28}
-          className="flex max-w-2xl flex-col items-center gap-4 text-center"
-        >
-          <span className="text-label text-primary font-medium tracking-wide uppercase">
-            A solução
-          </span>
-          <h2 className="text-h2 font-semibold tracking-tight text-balance">
-            Otimização completa da presença no Google.
-          </h2>
-          <p className="text-body text-muted-foreground text-balance">
-            Quando o diagnóstico revela oportunidades reais, executamos as
-            melhorias de forma estruturada — com o mesmo critério da nossa
-            metodologia.
-          </p>
-        </ScrollReveal>
-
         {/* 1 — Otimização completa (elemento principal, tratamento "showcase"
             grande e empilhado — pedido do usuario, inspirado numa
             composicao do framer.com: titulo grande em cima, visual grande
