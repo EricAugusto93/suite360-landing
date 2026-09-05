@@ -38,12 +38,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  // FASE 13: o favicon generico do create-next-app foi removido (nao ha
-  // simbolo isolado adequado a 32x32 na logo oficial ainda — PENDENCIA,
-  // ver PLANEJAMENTO.md secao 14.15). Um data URI vazio impede o
-  // navegador de tentar `/favicon.ico` por convencao (o que gera um 404
-  // real no console) sem inventar nenhum icone.
-  icons: { icon: "data:," },
+  // Favicon/apple-touch-icon agora vem dos arquivos de convencao do App
+  // Router (app/icon.png, app/apple-icon.png — gerados a partir da logo
+  // oficial). Um campo `icons` explicito aqui SUBSTITUIRIA esses arquivos
+  // (comportamento documentado do Next.js), entao o campo foi removido de
+  // proposito — antes ele existia so como um data URI vazio para evitar um
+  // 404 de `/favicon.ico`, enquanto nao havia nenhum icone quadrado oficial.
   openGraph: {
     type: "website",
     locale: "pt_BR",
