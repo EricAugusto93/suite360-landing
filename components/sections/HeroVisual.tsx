@@ -13,7 +13,7 @@ import {
 type Target = {
   label: string;
   Icon: typeof LocationMark;
-  /** Graus, 0 = topo, sentido horario — mesmo sentido da varredura. */
+  /** Graus, 0 = topo, sentido horario. */
   angle: number;
   /** Raio em % do container (nao uma orbita: posicao fixa, sem rotacao). */
   radius: number;
@@ -30,8 +30,12 @@ const TARGETS: Target[] = [
   { label: "Avaliações", Icon: ReviewsMark, angle: 296, radius: 36 },
 ];
 
-const SWEEP_DURATION = 10; // segundos — dentro da faixa 8-12s pedida.
-const WAVE_DURATION = 4.2; // segundos — dentro da faixa 3.5-5s pedida.
+// Duracao de um ciclo completo de pulso dos rotulos — nao ha mais um
+// feixe visivel girando (removido a pedido do usuario), mas os rotulos
+// continuam acendendo em sequencia num loop, como se o radar continuasse
+// varrendo a regiao "por baixo dos panos".
+const LABEL_LOOP_DURATION = 11;
+const WAVE_DURATION = 4.5;
 const WAVE_COUNT = 4;
 
 function polarToPercent(angleDeg: number, radiusPercent: number) {
@@ -45,7 +49,13 @@ function polarToPercent(angleDeg: number, radiusPercent: number) {
 /** Garante um array de tempos estritamente nao-decrescente entre 0 e 1 (exigencia do Motion para `times`). */
 function pulseTimes(fraction: number): number[] {
   const clamp = (n: number) => Math.min(1, Math.max(0, n));
-  const points = [0, clamp(fraction - 0.02), clamp(fraction), clamp(fraction + 0.06), 1];
+  const points = [
+    0,
+    clamp(fraction - 0.02),
+    clamp(fraction),
+    clamp(fraction + 0.06),
+    1,
+  ];
   for (let i = 1; i < points.length; i++) {
     if (points[i] < points[i - 1]) points[i] = points[i - 1];
   }
@@ -55,23 +65,31 @@ function pulseTimes(fraction: number): number[] {
 const IDLE_BORDER = "rgba(255,255,255,0.12)";
 const ACTIVE_BORDER = "rgba(8,102,255,0.75)";
 
-function RadarTarget({ target, index, reduced }: { target: Target; index: number; reduced: boolean }) {
+function RadarTarget({
+  target,
+  index,
+  reduced,
+}: {
+  target: Target;
+  index: number;
+  reduced: boolean;
+}) {
   const { label, Icon, angle, radius } = target;
   const { left, top } = polarToPercent(angle, radius);
   const fraction = angle / 360;
   const flip = left > 50;
 
   const sharedTransition = reduced
-    ? undefined
+    ? { duration: 0 }
     : {
-        duration: SWEEP_DURATION,
+        duration: LABEL_LOOP_DURATION,
         repeat: Infinity,
         ease: "easeInOut" as const,
         times: pulseTimes(fraction),
       };
 
   const floatTransition = reduced
-    ? undefined
+    ? { duration: 0 }
     : {
         duration: 4.5 + index * 0.35,
         repeat: Infinity,
@@ -87,8 +105,10 @@ function RadarTarget({ target, index, reduced }: { target: Target; index: number
       animate={reduced ? { y: 0 } : { y: [0, -3, 0] }}
       transition={reduced ? { duration: 0 } : floatTransition}
     >
-      <div className={cn("flex items-center gap-2", flip && "flex-row-reverse")}>
-        {/* Ponto luminoso + anel de pulso quando a varredura passa. */}
+      <div
+        className={cn("flex items-center gap-2", flip && "flex-row-reverse")}
+      >
+        {/* Ponto luminoso + anel de pulso. */}
         <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
           <motion.span
             aria-hidden="true"
@@ -99,14 +119,14 @@ function RadarTarget({ target, index, reduced }: { target: Target; index: number
                 ? { scale: 0.7, opacity: 0 }
                 : { scale: [0.7, 0.7, 1, 2.6, 2.6], opacity: [0, 0, 0.9, 0, 0] }
             }
-            transition={reduced ? { duration: 0 } : sharedTransition}
+            transition={sharedTransition}
           />
           <motion.span
             aria-hidden="true"
             className="bg-primary h-2 w-2 rounded-full"
             initial={{ scale: 1 }}
             animate={reduced ? { scale: 1 } : { scale: [1, 1, 1.5, 1, 1] }}
-            transition={reduced ? { duration: 0 } : sharedTransition}
+            transition={sharedTransition}
           />
         </div>
 
@@ -118,9 +138,17 @@ function RadarTarget({ target, index, reduced }: { target: Target; index: number
           animate={
             reduced
               ? { backgroundColor: IDLE_BORDER }
-              : { backgroundColor: [IDLE_BORDER, IDLE_BORDER, ACTIVE_BORDER, IDLE_BORDER, IDLE_BORDER] }
+              : {
+                  backgroundColor: [
+                    IDLE_BORDER,
+                    IDLE_BORDER,
+                    ACTIVE_BORDER,
+                    IDLE_BORDER,
+                    IDLE_BORDER,
+                  ],
+                }
           }
-          transition={reduced ? { duration: 0 } : sharedTransition}
+          transition={sharedTransition}
         />
 
         {/* Painel dark translucido com icone + rotulo. */}
@@ -130,15 +158,23 @@ function RadarTarget({ target, index, reduced }: { target: Target; index: number
           animate={
             reduced
               ? { borderColor: IDLE_BORDER }
-              : { borderColor: [IDLE_BORDER, IDLE_BORDER, ACTIVE_BORDER, IDLE_BORDER, IDLE_BORDER] }
+              : {
+                  borderColor: [
+                    IDLE_BORDER,
+                    IDLE_BORDER,
+                    ACTIVE_BORDER,
+                    IDLE_BORDER,
+                    IDLE_BORDER,
+                  ],
+                }
           }
-          transition={reduced ? { duration: 0 } : sharedTransition}
+          transition={sharedTransition}
         >
           <motion.span
             className="text-primary shrink-0"
             initial={{ scale: 1 }}
             animate={reduced ? { scale: 1 } : { scale: [1, 1, 1.25, 1, 1] }}
-            transition={reduced ? { duration: 0 } : sharedTransition}
+            transition={sharedTransition}
           >
             <Icon className="h-[15px] w-[15px] sm:h-[17px] sm:w-[17px]" />
           </motion.span>
@@ -152,14 +188,13 @@ function RadarTarget({ target, index, reduced }: { target: Target; index: number
 }
 
 /**
- * "Radar do Perfil da Empresa no Google" — substitui a composicao anterior
- * (orbitas elipticas + satelites girando), que lia como sistema solar.
- * Agora e um radar tecnologico visto de frente: nucleo central emissor,
- * ondas expansivas, varredura giratoria (feixe conico, nao um ponteiro) e
- * cinco "sinais" (Localização/Avaliações/Respostas/Fotos/Categorias) em
- * posicoes FIXAS — eles nao orbitam, apenas flutuam 2-4px e pulsam quando a
- * varredura passa pela sua posicao angular (sincronizado via `times` do
- * Motion, mesma duracao do loop de rotacao — sem JS de scroll/raf).
+ * "Radar do Perfil da Empresa no Google" — radar tecnologico visto de
+ * frente: nucleo central emissor com o "G", ondas expansivas fortes
+ * partindo do centro (pedido explicito do usuario: mais visiveis que
+ * antes) e cinco "sinais" fixos (as dimensoes analisadas —
+ * Localização/Avaliações/Respostas/Fotos/Categorias, nunca renomeadas).
+ * O feixe de varredura giratorio foi removido a pedido do usuario — so
+ * restam as ondas pulsantes como movimento do radar.
  *
  * Puramente decorativo (aria-hidden) — o mesmo conteudo (as 5 dimensoes)
  * existe como texto real na ProblemSection. `useReducedMotion` desliga
@@ -175,14 +210,16 @@ export function HeroVisual() {
       aria-hidden="true"
       className="relative mx-auto aspect-square w-full max-w-[40rem]"
     >
-      {/* Glow ambiente azul + roxo atras do radar inteiro. */}
+      {/* Glow ambiente azul atras do radar inteiro. */}
       <div className="pointer-events-none absolute top-1/2 left-1/2 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,var(--s360-glow-blue),transparent_70%)] blur-3xl" />
-      <div className="pointer-events-none absolute top-1/2 left-1/2 h-[36%] w-[36%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,var(--s360-glow-purple),transparent_75%)] blur-2xl" />
+      <div className="pointer-events-none absolute top-1/2 left-1/2 h-[40%] w-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(67,133,255,0.28),transparent_75%)] blur-2xl" />
 
-      {/* Disco do radar — area circular recortada (waves/varredura ficam contidas aqui). */}
+      {/* Disco do radar — area circular recortada (as ondas ficam contidas aqui). */}
       <div
         className="border-border absolute inset-[7%] overflow-hidden rounded-full border"
-        style={{ background: "radial-gradient(circle, #0a0a0c 0%, #050505 78%)" }}
+        style={{
+          background: "radial-gradient(circle, #0a0a0c 0%, #050505 78%)",
+        }}
       >
         {/* Grid radial discreto: 3 aneis estaticos. */}
         {[25, 50, 75].map((r) => (
@@ -207,28 +244,23 @@ export function HeroVisual() {
 
         {/*
           Ondas do radar: nascem no centro, expandem e desvanecem — nunca
-          tocam a borda. `initial` e SEMPRE o mesmo objeto constante (nao
-          depende de `reduced`) para que a marcacao renderizada no servidor
-          seja identica a primeira renderizacao no cliente — `reduced` so
-          existe no cliente (media query), entao qualquer diferenca
-          estrutural ou de `initial` condicionada a ele causa mismatch de
-          hidratacao para quem tem prefers-reduced-motion ativado. Com
-          `reduced`, o `animate` so "confirma" o mesmo estado do `initial`
-          (nenhum movimento, onda invisivel) — o radar fica estatico.
+          tocam a borda. Reforcadas a pedido do usuario (borda mais
+          grossa, opacidade de pico mais alta, glow proprio) para ficarem
+          claramente visiveis, nao so um contorno fraco.
         */}
         {Array.from({ length: WAVE_COUNT }).map((_, i) => (
           <motion.span
             key={i}
-            className="absolute top-1/2 left-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full border"
+            className="absolute top-1/2 left-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
-              borderColor:
-                i % 2 === 0 ? "rgba(8,102,255,0.35)" : "rgba(139,92,246,0.3)",
+              border: `2px solid ${i % 2 === 0 ? "rgba(67,133,255,0.65)" : "rgba(8,102,255,0.55)"}`,
+              boxShadow: `0 0 24px 2px ${i % 2 === 0 ? "rgba(67,133,255,0.35)" : "rgba(8,102,255,0.3)"}`,
             }}
-            initial={{ scale: 0.15, opacity: 0 }}
+            initial={{ scale: 0.12, opacity: 0 }}
             animate={
               reduced
-                ? { scale: 0.15, opacity: 0 }
-                : { scale: [0.15, 0.95], opacity: [0.55, 0] }
+                ? { scale: 0.12, opacity: 0 }
+                : { scale: [0.12, 0.95], opacity: [0.9, 0] }
             }
             transition={
               reduced
@@ -243,22 +275,6 @@ export function HeroVisual() {
           />
         ))}
 
-        {/* Varredura: cunha de luz sutil que gira 360°, nao um ponteiro. Mesma logica de `initial` constante acima. */}
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            background:
-              "conic-gradient(from 0deg, transparent 0deg, transparent 312deg, rgba(8,102,255,0.09) 340deg, rgba(67,133,255,0.18) 358deg, transparent 360deg)",
-          }}
-          initial={{ rotate: 0 }}
-          animate={reduced ? { rotate: 0 } : { rotate: 360 }}
-          transition={
-            reduced
-              ? { duration: 0 }
-              : { duration: SWEEP_DURATION, repeat: Infinity, ease: "linear" }
-          }
-        />
-
         {/* Vinheta interna (escurece o perimetro do disco). */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -269,16 +285,32 @@ export function HeroVisual() {
         />
       </div>
 
-      {/* Núcleo — Perfil da Empresa no Google. Fora do disco recortado para o glow nao ser cortado. */}
-      <div className="pointer-events-none absolute top-1/2 left-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-md sm:h-32 sm:w-32" />
-      <div className="border-border absolute top-1/2 left-1/2 h-[6.5rem] w-[6.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full border sm:h-[7.5rem] sm:w-[7.5rem]" />
+      {/*
+        Núcleo — "G" do Google, a pedido do usuario (referencia: esfera
+        azul luminosa com aneis concentricos translucidos e um "G" branco
+        em destaque). Diferente do simbolo colorido oficial do Google
+        (aquele SIM exigiria o ativo oficial): aqui e apenas a LETRA "G"
+        em branco, um caractere generico, sem tentar reproduzir a marca
+        registrada — por isso pode ser renderizado diretamente, sem
+        depender de nenhum arquivo externo.
+      */}
+      <div className="pointer-events-none absolute top-1/2 left-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-400/20 sm:h-36 sm:w-36" />
+      <div className="pointer-events-none absolute top-1/2 left-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-400/25 sm:h-32 sm:w-32" />
       <motion.div
-        className="s360-glow-blue absolute top-1/2 left-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border border-white/10 sm:h-28 sm:w-28"
-        style={{ backgroundColor: "#141416" }}
+        className="absolute top-1/2 left-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 sm:h-28 sm:w-28"
+        style={{
+          background:
+            "radial-gradient(circle at 38% 32%, #6fa8ff 0%, #2f7bff 42%, #0655d1 100%)",
+          borderColor: "rgba(255,255,255,0.55)",
+          boxShadow:
+            "0 0 0 6px rgba(67,133,255,0.18), 0 0 50px 6px rgba(67,133,255,0.55), 0 0 110px 20px rgba(8,102,255,0.35), inset 0 0 18px 2px rgba(255,255,255,0.25)",
+        }}
         initial={{ scale: 1 }}
         animate={reduced ? { scale: 1 } : { scale: [1, 1.04, 1] }}
         transition={
-          reduced ? { duration: 0 } : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }
+          reduced
+            ? { duration: 0 }
+            : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }
         }
       >
         {/* Iluminacao interna do nucleo. */}
@@ -286,31 +318,24 @@ export function HeroVisual() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 35% 28%, rgba(255,255,255,0.14), transparent 60%)",
+              "radial-gradient(circle at 35% 28%, rgba(255,255,255,0.4), transparent 60%)",
           }}
         />
-        {/*
-          PLACEHOLDER do "G" do Google: nenhum ativo oficial foi fornecido
-          ao projeto (public/brand/ so tem a logo da Suite360). Redesenhar
-          o simbolo multicolor do Google a mao seria impreciso — em vez
-          disso, um marcador neutro de "fonte de sinal" ocupa o lugar.
-          Substituir por:
-            <Image src="/brand/google-g.svg" alt="" width={56} height={56} className="h-14 w-14" />
-          assim que o arquivo google-g.svg (ou .png transparente, ~256x256,
-          "G" colorido oficial do Google) for adicionado em public/brand/.
-        */}
         <div className="relative flex h-full w-full items-center justify-center">
-          <svg viewBox="0 0 32 32" className="h-8 w-8 text-white/85" fill="none" aria-hidden="true">
-            <circle cx="16" cy="16" r="10.5" stroke="currentColor" strokeWidth="1.4" opacity="0.5" />
-            <path d="M16 5.5v4.2M16 22.3v4.2M5.5 16h4.2M22.3 16h4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            <circle cx="16" cy="16" r="2.6" fill="currentColor" />
-          </svg>
+          <span className="text-3xl leading-none font-black text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)] sm:text-4xl">
+            G
+          </span>
         </div>
       </motion.div>
 
       {/* Sinais detectados — posicoes fixas, nao orbitam. */}
       {TARGETS.map((target, index) => (
-        <RadarTarget key={target.label} target={target} index={index} reduced={reduced} />
+        <RadarTarget
+          key={target.label}
+          target={target}
+          index={index}
+          reduced={reduced}
+        />
       ))}
     </div>
   );

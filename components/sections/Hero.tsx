@@ -34,30 +34,71 @@ export function Hero() {
   const whatsappConfigured = isWhatsAppConfigured();
 
   return (
-    <Section className="s360-grid-texture relative flex min-h-[88svh] items-center overflow-hidden pt-24 pb-20 sm:pt-28">
+    <Section className="relative flex min-h-[88svh] items-center overflow-hidden pt-24 pb-20 sm:pt-28">
       {/*
-        Fundo do Hero: preto profundo + grid tecnico quase imperceptivel
-        (classe .s360-grid-texture no Section) + halo azul atras do
-        HeroVisual + vinheta suave nas bordas (escurece os cantos para dar
-        profundidade sem virar "um gradiente" perceptivel).
+        Fundo do Hero: gradiente diagonal verde-azulado com duas pontas
+        mais claras (pedido explicito do usuario, referencia visual em
+        anexo) + preto no meio, grid tecnico por cima e um halo azul atras
+        do radar. Duas camadas separadas (gradiente + grid) porque
+        `.s360-grid-texture` define seu proprio `background-image` — se o
+        gradiente fosse aplicado na MESMA div via `style`, o `background`
+        inline sobrescreveria a imagem da grade (shorthand reseta tudo).
+        SEM `-z-index` negativo: `Section` tem `position:relative` mas
+        nenhum `z-index` proprio, entao NAO cria um novo contexto de
+        empilhamento — um filho com z-index negativo "escapa" para o
+        contexto do ancestral mais proximo que cria um, e acaba pintado
+        ATRAS do proprio fundo solido da Section (bug real, confirmado por
+        amostragem de pixel: o fundo aparecia sempre como #050505 puro,
+        mesmo com o gradiente aplicado corretamente no computed style).
+        A ordem no DOM (antes do Container) ja garante que fica atras do
+        conteudo, sem precisar de z-index — mesmo padrao usado em
+        FinalCTASection.tsx.
+
+        Duas variantes por breakpoint (nunca a mesma no mobile e no
+        desktop): no desktop o layout e texto-a-esquerda/radar-a-direita,
+        entao um gradiente DIAGONAL com as "duas pontas" mais claras fica
+        atras de conteudo com folga — a faixa escura central e larga o
+        suficiente (16% a 60%) para cobrir toda a coluna de texto, nunca
+        so uma faixa fina no meio (isso ja causou um problema real: o
+        cinza do texto secundario foi calibrado para contraste sobre preto
+        puro — mesmo um leve clareamento por baixo dele já derrubava a
+        legibilidade quase a zero, mesmo com opacidade "sutil"). Tom
+        deslocado para mais azulado (menos verde) a pedido do usuario. No
+        mobile tudo empilha numa coluna estreita e centralizada — o
+        gradiente diagonal colocaria o texto sobre a ponta mais clara,
+        entao a versao mobile continua um gradiente vertical dedicado,
+        escuro onde o texto fica (topo) e mais claro so perto do radar
+        (embaixo, onde o layout empilhado o posiciona).
       */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 right-0 -z-10 h-[44rem] w-[44rem] translate-x-1/4 -translate-y-1/2 rounded-full blur-3xl"
+        className="pointer-events-none absolute inset-0 hidden lg:block"
+        style={{
+          background:
+            "linear-gradient(120deg, rgba(20,75,150,0.16) 0%, #050505 16%, #050505 60%, rgba(35,140,235,0.32) 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 lg:hidden"
+        style={{
+          background:
+            "linear-gradient(180deg, #050505 0%, #050505 45%, rgba(35,140,235,0.18) 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="s360-grid-texture pointer-events-none absolute inset-0"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-0 h-[44rem] w-[44rem] translate-x-1/4 -translate-y-1/2 rounded-full blur-3xl"
         style={{
           background:
             "radial-gradient(circle, var(--s360-glow-blue), transparent 70%)",
         }}
       />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 45%, #050505 100%)",
-        }}
-      />
-      <Container className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+      <Container className="relative grid grid-cols-1 items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         <div className="flex flex-col gap-7 text-center lg:text-left">
           {/*
             Sem ScrollReveal de propósito: este H1 é o candidato mais

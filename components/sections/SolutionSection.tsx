@@ -1,12 +1,10 @@
 import { BookOpen } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { Section } from "@/components/ui/Section";
-import { METHODOLOGY_AREAS } from "@/lib/constants";
 import { NfcShowcase } from "./NfcShowcase";
-import { OptimizationPreview } from "./OptimizationPreview";
+import { OptimizationShowcase } from "./OptimizationShowcase";
 import { ReportShowcase } from "./ReportShowcase";
 
 /**
@@ -41,36 +39,11 @@ export function SolutionSection() {
         {/* 1 — Otimização completa (elemento principal, tratamento "showcase"
             grande e empilhado — pedido do usuario, inspirado numa
             composicao do framer.com: titulo grande em cima, visual grande
-            embaixo, em vez da divisao lado a lado usada antes). */}
-        <ScrollReveal
-          variant="fade-up"
-          delay={0.1}
-          className="mt-16 flex w-full max-w-3xl flex-col items-center gap-4 text-center sm:mt-20"
-        >
-          <h3 className="text-h1 font-semibold text-balance">
-            Otimização completa
-          </h3>
-          <p className="text-body text-muted-foreground max-w-xl text-balance">
-            Não é uma edição pontual de cadastro. É a execução estratégica das
-            melhorias identificadas na análise, considerando as mesmas frentes
-            da nossa metodologia.
-          </p>
-          <ul className="flex flex-wrap justify-center gap-2">
-            {METHODOLOGY_AREAS.map((area) => (
-              <li key={area}>
-                <Badge variant="accent">{area}</Badge>
-              </li>
-            ))}
-          </ul>
-        </ScrollReveal>
-
-        <ScrollReveal
-          variant="fade-up"
-          delay={0.15}
-          className="mt-10 w-full max-w-4xl"
-        >
-          <OptimizationPreview />
-        </ScrollReveal>
+            embaixo, em vez da divisao lado a lado usada antes). Titulo,
+            descricao, etiquetas e painel ficam juntos em OptimizationShowcase
+            (Client Component) so para compartilhar o estado de hover entre
+            as etiquetas e os modulos destacados no painel. */}
+        <OptimizationShowcase />
 
         {/* 2 — Display NFC (complemento premium) */}
         <ScrollReveal
