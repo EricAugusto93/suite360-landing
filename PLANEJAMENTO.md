@@ -553,6 +553,45 @@ Registro de decisões/ajustes feitos durante a implementação, sem alterar as d
 
 ---
 
+## 14.17 Reformulação visual profunda, radar do Hero e painel de otimização (fora do fluxo de fases)
+
+> Sequência longa de instruções diretas do usuário, fora da numeração de FASEs, cobrindo: estrutura de depoimentos, redesign visual profundo (dark-by-default), campo "Estado" no diagnóstico, três iterações do elemento gráfico do Hero (órbitas → radar → radar refinado), e a reformulação do painel comparativo "antes/depois" da Solução. Consolidado numa única seção por serem, na prática, uma mesma linha de trabalho contínua.
+
+**Estrutura de depoimentos (`TestimonialWheel`)**
+- `lib/types.ts` ganhou o tipo `Testimonial`; `components/sections/TestimonialWheel.tsx` foi criado retornando `null` quando `testimonials.length === 0` — mesmo padrão já usado em `Footer.tsx` para links legais. `app/page.tsx` declara `const testimonials: Testimonial[] = []` (vazio no estado final). Testado com dados de exemplo com rótulos deliberadamente genéricos ("O depoimento do cliente aparecerá aqui quando for enviado"), depois revertido para vazio — nenhum depoimento fictício chegou a ficar no estado entregue.
+
+**Dark-by-default (causa raiz do "site ainda parece branco")**
+- Até este ponto, o fundo escuro só existia dentro de uma classe local `.s360-invert`, aplicada manualmente a 2 das 9 seções. Os tokens `:root` (usados por padrão em toda parte) eram claros — por isso a maior parte da página lia como branca mesmo depois de várias rodadas de ajuste de cor. Corrigido invertendo a base em `app/globals.css`: os tokens `:root` passaram a **ser** os valores escuros; a classe `.s360-invert` foi removida (não existe mais "seção que vira escura", a página inteira é escura por padrão, com 3 variantes de `Section` — `base`/`alt`/`elevated` — alternando tons de preto em vez de claro/escuro).
+- Container ampliado (`max-w-[85rem]`/1360px, padding 24–48px) e escala tipográfica revisada (`clamp()` em todos os títulos) — resolvendo as queixas de "conteúdo pequeno, muito espaço vazio".
+- Ícones técnicos próprios criados para substituir Lucide-em-círculo: `components/sections/ProblemIcons.tsx` (5 marcas para os pontos de atenção), `components/sections/MethodologyIcons.tsx` (4 marcas com microanimação no hover, orquestradas via `MethodologyCard.tsx` para isolar a interatividade do Motion num Client Component).
+- `components/sections/OptimizationPreview.tsx` recebeu a primeira passada de "janela de análise" (moldura com barra superior, painéis antes/depois com barras conceituais) — depois totalmente reformulada de novo (ver mais abaixo).
+
+**Campo "Estado" no diagnóstico** (única mudança funcional autorizada numa das instruções)
+- `lib/types.ts`: tipo `UF` (26 estados + DF) e campo `estado: UF | null` em `DiagnosticData`; `DIAGNOSTIC_STEP_IDS` ganhou a etapa `"state"` entre `"size"` e `"city"`.
+- `lib/constants.ts`: `STATE_OPTIONS` (sigla + nome completo) e `resolveStateLabel`.
+- Novo `components/ui/Select.tsx` (select nativo estilizado) e `components/diagnostic/StateStep.tsx`.
+- `diagnosticReducer.ts`: ação `SELECT_STATE` — trocar o Estado **limpa a Cidade** já preenchida (evita cidade de um estado errado sobrevivendo à troca).
+- `ConfirmationStep.tsx` mostra Estado e Cidade como linhas separadas, usando `STEP_ORDER.indexOf(...)` para os índices de "Editar" (robusto à reordenação, em vez de números mágicos).
+- `lib/whatsapp.ts`: mensagem passou a incluir `Cidade - Estado` (nome completo).
+- Diagnóstico agora tem 6 etapas (era 5) — refletido automaticamente na barra de progresso.
+
+**Elemento gráfico do Hero — três iterações**
+1. **Radar tecnológico** (substituiu o "sistema solar" original de órbitas): núcleo central, ondas expansivas, feixe de varredura giratório (`conic-gradient`), 5 "sinais" fixos (Localização/Avaliações/Respostas/Fotos/Categorias — as mesmas 5 dimensões da `ProblemSection`, nunca renomeadas). Estrutura modular criada em `components/sections/radar/` (`radarConfig.ts`, `RadarPins.tsx`) para os pins de localização revelados progressivamente pela varredura — **essa camada de pins foi revertida a pedido do usuário** na iteração seguinte (a pasta `radar/` e `HeroBackground.tsx` foram removidos; o radar voltou à versão sem pins, mas manteve núcleo/ondas/sinais).
+2. **Refinamento**: feixe giratório removido por completo (só as ondas pulsantes permanecem, reforçadas — borda mais grossa, glow próprio); núcleo do radar passou a ter um "G" (letra genérica em branco, não o símbolo colorido oficial — por isso não depende de nenhum ativo externo); fundo do Hero deixou de ser preto uniforme, ganhando gradiente diagonal verde-azulado/teal com duas extremidades mais claras.
+3. **Ajuste fino de cor + bug real de empilhamento CSS**: o usuário pediu a faixa escura diagonal (não vertical), tom mais azulado (menos verde) e uma borda no "G". Ao implementar, um teste automatizado revelou que o **texto do H1 estava sendo pintado por trás do fundo do Hero, com brilho zero em qualquer ponto** — não era um problema de contraste, era uma regra real de empilhamento CSS: conteúdo `position: static` (o `Container`, que nunca tinha `position` definida) pinta **antes** de irmãos posicionados (`position: absolute`, os divs de gradiente/grid), independente da ordem no DOM. Corrigido dando `position: relative` ao `Container` só dentro de `Hero.tsx` (via `className`, sem tocar no componente `Container` compartilhado) — isso faz a ordem do DOM valer normalmente entre os dois. Confirmado por amostragem de pixel (biblioteca `sharp`) antes/depois da correção.
+- **Pendência real**: o "G" do núcleo continua sendo um placeholder de letra genérica — nenhum ativo oficial do símbolo colorido do Google foi fornecido ao projeto. Se for necessário o símbolo oficial (não só a letra), adicionar em `public/brand/google-g.svg`.
+
+**Painel "Otimização completa" (`OptimizationPreview.tsx`) — reformulação completa**
+- O diagrama "2 retângulos + seta" foi substituído por uma "janela de análise" com: barra superior com indicador de status animado; dois painéis (Antes/Depois) com 7 módulos cada (cabeçalho, localização, categoria, avaliações, fotos, respostas, completude), usando só estados textuais qualitativos ("Incompleto"/"Pendente" → "Estruturado"/"Configurado"/"Otimizado" — nunca números ou porcentagens inventadas); núcleo central de "transformação" com ícone próprio; linhas de conexão animadas entre os painéis; sequência de revelação de ~3s ao entrar na viewport (uma vez só).
+- Novo `components/sections/OptimizationShowcase.tsx`: componente Client que junta o título/etiquetas (textos idênticos aos de antes) com o painel, só para compartilhar o estado de hover — passar o mouse numa das 4 etiquetas de metodologia (Estrutura do perfil/Conteúdo/Reputação/Presença local) destaca os módulos correspondentes nos dois painéis, sem alterar as etiquetas em si.
+- **Bug real corrigido durante o QA**: um `useEffect` com `setState` síncrono (usado para pular a animação com `prefers-reduced-motion`) foi acusado pelo lint (`react-hooks/set-state-in-effect`, risco de cascata de renders); resolvido computando o "gate" de animação como `startedInView || reduced` direto no render, sem efeito. Duas partes do componente ainda usavam o padrão antigo de omitir elementos condicionalmente com base em `reduced` (mesma classe de bug de hidratação já documentada nas seções anteriores) — corrigidas para sempre renderizar os mesmos elementos, variando só o `animate`.
+
+**Git/GitHub**
+- Git e GitHub CLI não estavam instalados na máquina — instalados via `winget` a pedido do usuário. Repositório local inicializado (`git init`), identidade configurada, dois commits feitos localmente cobrindo todo o trabalho desde o início do projeto.
+- **Pendência real**: o *push* para `https://github.com/EricAugusto93/Site360-filmes.git` não pôde ser concluído — precisa de `gh auth login` (login interativo via navegador), que só o usuário pode fazer na própria máquina. Os commits estão seguros localmente, aguardando autenticação para serem enviados.
+
+---
+
 ## 15. Roadmap das próximas etapas
 
 > Cada etapa é validada com o usuário antes de iniciar a seguinte (ver [CHECKLIST.md](./CHECKLIST.md)).

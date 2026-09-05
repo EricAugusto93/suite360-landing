@@ -345,6 +345,30 @@
 
 ---
 
+## Trabalho fora do fluxo de fases — Reformulação visual profunda, radar do Hero e painel de otimização
+
+> Ver PLANEJAMENTO.md, seção 14.17, para o detalhamento completo.
+
+- [x] Estrutura de depoimentos (`TestimonialWheel`) — pronta para receber conteúdo real, vazia no estado entregue
+- [x] Base de tokens invertida para dark-by-default (`app/globals.css`) — causa raiz de "a página ainda parece branca" identificada e corrigida
+- [x] Container ampliado (1360px) e escala tipográfica revisada com `clamp()`
+- [x] Ícones técnicos próprios (`ProblemIcons.tsx`, `MethodologyIcons.tsx`) substituindo Lucide-em-círculo
+- [x] Campo "Estado" adicionado ao diagnóstico (6 etapas, sigla + nome completo, limpa a Cidade ao trocar, `ConfirmationStep` atualizado)
+- [x] Hero: radar tecnológico (núcleo + ondas + 5 sinais fixos) substituindo a composição de órbitas original
+- [x] Hero: camada de pins de localização implementada e depois **revertida** a pedido do usuário (mantido só núcleo/ondas/sinais)
+- [x] Hero: feixe de varredura giratório removido; ondas pulsantes reforçadas; núcleo com "G" (letra genérica, sem ativo oficial)
+- [x] Hero: fundo em gradiente diagonal verde-azulado/teal (desktop) e vertical (mobile), com fade nas bordas
+- [x] Bug real corrigido: texto do H1 pintado atrás do fundo por uma regra de empilhamento CSS (`position: static` vs `position: absolute`) — `Container` do Hero recebeu `position: relative` local
+- [x] `OptimizationPreview.tsx` totalmente reformulado (janela de análise com 7 módulos/painel, núcleo de transformação, linhas de conexão, revelação animada) — sem métricas/números inventados
+- [x] `OptimizationShowcase.tsx` criado — hover nas 4 etiquetas de metodologia destaca os módulos correspondentes no painel
+- [x] Bug real corrigido: `setState` síncrono em `useEffect` (acusado pelo lint) e 2 pontos remanescentes do padrão de hidratação insegura
+- [x] Lint, type-check e build sem erros em cada etapa; sem overflow horizontal; `prefers-reduced-motion` testado
+- [x] Git/GitHub CLI instalados; repositório local inicializado; 2 commits locais criados
+- [ ] Push para `github.com/EricAugusto93/Site360-filmes.git` — **bloqueado**, aguardando `gh auth login` do usuário
+- [ ] Validação do usuário
+
+---
+
 ## GO-LIVE (pendências externas para o lançamento)
 
 Nenhum destes itens pode ser marcado como concluído pelo código — todos dependem de uma decisão ou material do cliente.
@@ -366,6 +390,8 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 - [ ] Fornecer fotos reais do Display NFC (ver formato recomendado em `PLANEJAMENTO.md`, seção 14.12)
 - [ ] Fornecer material real do relatório de entrega (ver formato recomendado em `PLANEJAMENTO.md`, seção 14.12)
 - [ ] Fornecer provas sociais autorizadas (depoimento/logo/case/screenshot)
+- [ ] Fornecer/confirmar o ativo oficial do "G" colorido do Google para o núcleo do radar do Hero (hoje é um placeholder — a letra "G" genérica em branco, sem depender de nenhum arquivo) — se a letra genérica for suficiente, este item pode ser fechado sem ativo nenhum
+- [ ] Autenticar o GitHub CLI nesta máquina (`gh auth login`) para permitir o `git push` dos commits já feitos localmente para `github.com/EricAugusto93/Site360-filmes.git`
 - [ ] Revisão cross-browser e cross-device em ambiente real
 - [ ] Fazer QA final no domínio real, após todo o resto acima estar configurado
 
