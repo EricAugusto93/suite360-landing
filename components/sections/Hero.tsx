@@ -116,13 +116,23 @@ export function Hero() {
             <span className="text-foreground">{HEADLINE_PUNCH}</span>
           </h1>
 
-          <ScrollReveal trigger="mount" delay={0.08}>
+          <ScrollReveal
+            trigger="mount"
+            delay={0.08}
+            direction="right"
+            mobileDistance={28}
+          >
             <p className="text-h4 text-muted-foreground mx-auto max-w-xl font-normal text-balance lg:mx-0">
               {SUBHEADLINE}
             </p>
           </ScrollReveal>
 
-          <ScrollReveal trigger="mount" delay={0.16}>
+          <ScrollReveal
+            trigger="mount"
+            delay={0.16}
+            direction="right"
+            mobileDistance={28}
+          >
             <div className="flex flex-col items-center gap-3 sm:flex-row lg:items-start lg:justify-start">
               <TrackedCtaLink
                 href="#diagnostico"
@@ -149,7 +159,12 @@ export function Hero() {
             </div>
           </ScrollReveal>
 
-          <ScrollReveal trigger="mount" delay={0.22}>
+          <ScrollReveal
+            trigger="mount"
+            delay={0.22}
+            direction="right"
+            mobileDistance={28}
+          >
             <div className="text-caption text-muted-foreground flex flex-col items-center gap-x-5 gap-y-1.5 sm:flex-row lg:items-start lg:justify-start">
               <span className="flex items-center gap-1.5">
                 <Check size={14} className="text-primary" />
@@ -163,7 +178,22 @@ export function Hero() {
           </ScrollReveal>
         </div>
 
-        <ScrollReveal trigger="mount" variant="scale" delay={0.12}>
+        {/*
+          No mobile o radar deve ser o ULTIMO elemento do Hero a entrar
+          (depois do texto e dos CTAs acima) — pedido explicito do usuario.
+          `mobileDelay` sobrescreve so o atraso mobile (0.42s, apos o ultimo
+          bloco de texto a 0.22s + sua propria transicao); `variant="scale"`
+          e `delay={0.12}` continuam exatamente como antes para desktop, que
+          nunca le `direction`/`mobileDelay`.
+        */}
+        <ScrollReveal
+          trigger="mount"
+          variant="scale"
+          delay={0.12}
+          direction="right"
+          mobileDistance={24}
+          mobileDelay={0.42}
+        >
           <HeroVisual />
         </ScrollReveal>
       </Container>

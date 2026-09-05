@@ -51,6 +51,8 @@ export function ProcessSection() {
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
+          direction="right"
+          mobileDistance={28}
           className="flex max-w-2xl flex-col items-center gap-4 text-center"
         >
           <span className="text-label text-primary font-medium tracking-wide uppercase">
@@ -73,6 +75,8 @@ export function ProcessSection() {
               variant="fade-up"
               delay={0.08 + index * 0.06}
               amount={0.4}
+              direction="right"
+              mobileDistance={24}
               className="relative flex gap-5 pb-8 last:pb-0 sm:gap-7 sm:pb-10"
             >
               {index !== PROCESS_STEPS.length - 1 ? (

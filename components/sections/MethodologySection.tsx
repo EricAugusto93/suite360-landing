@@ -120,6 +120,8 @@ export function MethodologySection() {
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
+          direction="left"
+          mobileDistance={32}
           className="border-border bg-card relative w-full overflow-hidden rounded-xl border p-7 sm:p-10 lg:p-14"
         >
           <div
@@ -161,14 +163,24 @@ export function MethodologySection() {
             </div>
 
             {GROUPS.map(({ Icon, title, description, items }, index) => (
-              <MethodologyCard
+              // `variant="none"` — no desktop/tablet os cards continuam
+              // sem nenhuma animacao propria (so o painel externo anima),
+              // exatamente como antes; `direction` so tem efeito no mobile.
+              <ScrollReveal
                 key={title}
-                Icon={Icon}
-                title={title}
-                description={description}
-                items={items}
-                visual={<CardVisual index={index} />}
-              />
+                variant="none"
+                delay={0.1 + index * 0.08}
+                direction={index % 2 === 0 ? "left" : "right"}
+                mobileDistance={28}
+              >
+                <MethodologyCard
+                  Icon={Icon}
+                  title={title}
+                  description={description}
+                  items={items}
+                  visual={<CardVisual index={index} />}
+                />
+              </ScrollReveal>
             ))}
           </div>
         </ScrollReveal>
@@ -176,6 +188,8 @@ export function MethodologySection() {
         <ScrollReveal
           variant="fade-up"
           delay={0.15}
+          direction="left"
+          mobileDistance={28}
           className="mt-16 max-w-2xl text-center sm:mt-20"
         >
           <p className="text-h3 text-foreground font-medium text-balance">

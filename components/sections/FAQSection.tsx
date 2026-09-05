@@ -42,6 +42,8 @@ export function FAQSection() {
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
+          direction="left"
+          mobileDistance={28}
           className="flex max-w-2xl flex-col items-center gap-4 text-center"
         >
           <span className="text-label text-primary font-medium tracking-wide uppercase">
@@ -58,6 +60,8 @@ export function FAQSection() {
         <ScrollReveal
           variant="fade-up"
           delay={0.1}
+          direction="left"
+          mobileDistance={32}
           className="border-border bg-card mt-14 w-full max-w-3xl rounded-xl border sm:mt-20"
         >
           <div className="divide-border divide-y px-6 sm:px-8">

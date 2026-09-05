@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import type { Transition } from "motion/react";
+import type { Transition, Variants } from "motion/react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Progress } from "@/components/ui/Progress";
 import { trackEvent } from "@/lib/analytics";
 import type { DiagnosticStepId } from "@/lib/types";
+import { useIsMobileViewport } from "@/lib/useIsMobileViewport";
 import { ConfirmationStep } from "./ConfirmationStep";
 import {
   STEP_ORDER,
@@ -32,6 +33,54 @@ const STEP_LABELS: Record<DiagnosticStepId, string> = {
 
 const STEP_TRANSITION: Transition = { duration: 0.18, ease: [0.16, 1, 0.3, 1] };
 
+type SlideDirection = 1 | -1;
+
+/**
+ * No mobile, a transicao entre etapas desliza horizontalmente (avancar:
+ * etapa nova entra da direita, etapa antiga sai pela esquerda; voltar:
+ * sentido invertido) — pedido explicito do usuario. No desktop/tablet o
+ * comportamento continua o mesmo de sempre (leve deslocamento vertical
+ * y:8/-8, sem `x`).
+ *
+ * `custom` (o `direction`) precisa vir do proprio `AnimatePresence`, nao so
+ * de uma prop no `motion.div`: quando uma etapa sai da arvore, o React nao
+ * a renderiza de novo para atualizar suas props — o `AnimatePresence`
+ * guarda a ultima versao renderizada dela. Se o `exit` fosse um objeto (ou
+ * uma funcao lendo uma prop comum), a etapa que esta saindo usaria a
+ * direcao de QUANDO ELA ENTROU (a transicao anterior), nao a da transicao
+ * atual. Como variant-function + `custom` no `AnimatePresence`, o Motion
+ * reavalia `exit` com o valor mais recente de `custom` no momento da saida.
+ */
+function buildStepVariants(isMobile: boolean, reduced: boolean): Variants {
+  if (reduced) {
+    return {
+      enter: { opacity: 1, x: 0, y: 0 },
+      center: { opacity: 1, x: 0, y: 0 },
+      exit: { opacity: 1, x: 0, y: 0 },
+    };
+  }
+  if (!isMobile) {
+    return {
+      enter: { opacity: 0, x: 0, y: 8 },
+      center: { opacity: 1, x: 0, y: 0 },
+      exit: { opacity: 0, x: 0, y: -8 },
+    };
+  }
+  return {
+    enter: (direction: SlideDirection) => ({
+      opacity: 0,
+      x: direction === 1 ? 32 : -32,
+      y: 0,
+    }),
+    center: { opacity: 1, x: 0, y: 0 },
+    exit: (direction: SlideDirection) => ({
+      opacity: 0,
+      x: direction === 1 ? -32 : 32,
+      y: 0,
+    }),
+  };
+}
+
 export function DiagnosticWizard() {
   const [state, dispatch] = useReducer(
     diagnosticReducer,
@@ -42,6 +91,13 @@ export function DiagnosticWizard() {
   const hasStartedRef = useRef(false);
   const hasCompletedRef = useRef(false);
   const shouldReduceMotion = useReducedMotion();
+  const isMobile = useIsMobileViewport();
+  // Atualizado em cada handler (goNext/BACK/GOTO) — nunca lido/escrito
+  // durante a renderizacao (o lint de refs acusa isso, com razao: um ref
+  // nao dispara rerender por si so, entao o `custom` do AnimatePresence
+  // ficaria um passo atrasado). `useState` aqui e o certo: o valor so
+  // importa para a proxima renderizacao apos o clique, nunca antes.
+  const [slideDirection, setSlideDirection] = useState<SlideDirection>(1);
 
   const currentStepId = STEP_ORDER[state.stepIndex];
   const stepNumber = state.stepIndex + 1;
@@ -83,6 +139,7 @@ export function DiagnosticWizard() {
       return;
     }
     const nextIndex = state.stepIndex + 1;
+    setSlideDirection(1);
     dispatch({ type: "NEXT" });
     // `step` e a etapa que acabou de ser preenchida/validada (nunca o
     // valor digitado — so o identificador da etapa, ver lib/types.ts).
@@ -124,12 +181,17 @@ export function DiagnosticWizard() {
           medicao de altura durante a transicao.
         */}
         <motion.div layout={!shouldReduceMotion} transition={STEP_TRANSITION}>
-          <AnimatePresence initial={false} mode="popLayout">
+          <AnimatePresence
+            initial={false}
+            mode="popLayout"
+            custom={slideDirection}
+          >
             <motion.div
               key={currentStepId}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+              variants={buildStepVariants(isMobile, Boolean(shouldReduceMotion))}
+              initial="enter"
+              animate="center"
+              exit="exit"
               transition={STEP_TRANSITION}
             >
               {currentStepId === "segment" && (
@@ -211,7 +273,10 @@ export function DiagnosticWizard() {
                 <ConfirmationStep
                   titleRef={titleRef}
                   data={state.data}
-                  onEditStep={(index) => dispatch({ type: "GOTO", index })}
+                  onEditStep={(index) => {
+                    setSlideDirection(-1);
+                    dispatch({ type: "GOTO", index });
+                  }}
                 />
               )}
             </motion.div>
@@ -224,7 +289,10 @@ export function DiagnosticWizard() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => dispatch({ type: "BACK" })}
+                onClick={() => {
+                  setSlideDirection(-1);
+                  dispatch({ type: "BACK" });
+                }}
               >
                 <ArrowLeft size={16} />
                 Voltar

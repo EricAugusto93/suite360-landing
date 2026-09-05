@@ -23,6 +23,8 @@ export function OptimizationShowcase() {
       <ScrollReveal
         variant="fade-up"
         delay={0.1}
+        direction="left"
+        mobileDistance={28}
         className="mt-16 flex w-full max-w-3xl flex-col items-center gap-4 text-center sm:mt-20"
       >
         <h3 className="text-h1 font-semibold text-balance">
@@ -48,7 +50,13 @@ export function OptimizationShowcase() {
         </ul>
       </ScrollReveal>
 
-      <ScrollReveal variant="fade-up" delay={0.15} className="mt-10 w-full max-w-4xl">
+      <ScrollReveal
+        variant="fade-up"
+        delay={0.15}
+        direction="left"
+        mobileDistance={28}
+        className="mt-10 w-full max-w-4xl"
+      >
         <OptimizationPreview activeArea={activeArea} />
       </ScrollReveal>
     </>

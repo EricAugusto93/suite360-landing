@@ -44,6 +44,8 @@ export function FinalCTASection() {
       <Container className="relative flex flex-col items-center gap-8 text-center">
         <ScrollReveal
           variant="fade-up"
+          direction="up"
+          mobileDistance={24}
           className="flex items-center gap-3"
         >
           {DIAGNOSTIC_DIMENSIONS.map((Icon, index) => (
@@ -59,6 +61,8 @@ export function FinalCTASection() {
         <ScrollReveal
           variant="fade-up"
           delay={0.05}
+          direction="up"
+          mobileDistance={28}
           className="flex max-w-2xl flex-col items-center gap-4"
         >
           <h2 className="text-h2 font-semibold tracking-tight text-balance">
@@ -72,6 +76,8 @@ export function FinalCTASection() {
         <ScrollReveal
           variant="fade-up"
           delay={0.1}
+          direction="up"
+          mobileDistance={24}
           className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row"
         >
           <TrackedCtaLink

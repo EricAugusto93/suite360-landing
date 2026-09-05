@@ -5,9 +5,13 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import {
   defaultTransition,
+  mobileDirectionVariants,
+  mobileRevealTransition,
   motionVariants,
+  type MobileRevealDirection,
   type MotionVariantName,
 } from "@/lib/motion";
+import { useIsMobileViewport } from "@/lib/useIsMobileViewport";
 
 type ScrollRevealProps = {
   children: ReactNode;
@@ -33,10 +37,26 @@ type ScrollRevealProps = {
   amount?: number;
   /** Atraso em segundos antes da animacao comecar — util para entradas em sequencia. */
   delay?: number;
+  /**
+   * NOVO — pedido explicito do usuario: entrada lateral (ou vertical, para
+   * "up") exclusiva do mobile (<768px). So tem efeito quando informada;
+   * sem essa prop, o componente se comporta EXATAMENTE como antes em
+   * qualquer largura de tela (nenhuma regressao em desktop/tablet, que
+   * nunca usam esta prop). Em telas >=768px esta prop e ignorada por
+   * completo — o `variant` normal continua valendo.
+   */
+  direction?: MobileRevealDirection;
+  /** Distancia do deslocamento mobile em px (24-40 lateral / 24-32 vertical pedido). Default 32. */
+  mobileDistance?: number;
+  /** Atraso especifico do mobile (ex.: reordenar elementos no Hero) — cai em `delay` se omitido. */
+  mobileDelay?: number;
 };
 
 /**
- * Wrapper padrao de reveal (fade / fade-up / scale). Respeita
+ * Wrapper padrao de reveal (fade / fade-up / scale), com uma variante
+ * adicional exclusiva do mobile (`direction`) pedida pelo usuario para dar
+ * as secoes uma entrada com fade + deslocamento lateral/vertical e ritmo
+ * alternado, acima de 767px o comportamento e 100% preservado. Respeita
  * prefers-reduced-motion via hook do Motion (a media query global em
  * globals.css cobre transicoes CSS simples, mas nao animacoes JS do Motion).
  *
@@ -47,18 +67,15 @@ type ScrollRevealProps = {
  * `<noscript>` forca esses elementos a ficarem visiveis nesse cenario.
  * Ver PLANEJAMENTO.md, secao 14.10.
  *
- * IMPORTANTE (bug real encontrado e corrigido): a versao anterior fazia
- * `if (shouldReduceMotion) return <Static>...` — um retorno antecipado que
- * troca o ELEMENTO renderizado (sem a classe `motion-reveal`/estilo inline)
- * quando `prefers-reduced-motion` esta ativo. `shouldReduceMotion` so existe
- * no cliente (media query do SO); no servidor e sempre `null`/false. Para um
- * visitante real com essa preferencia ativada, isso produzia uma arvore
- * DIFERENTE da renderizada no servidor — erro de hidratacao em TODA secao
- * que usa ScrollReveal (a pagina inteira). A correcao: sempre renderizar o
- * mesmo `MotionTag` com o mesmo `initial="hidden"` constante; a preferencia
- * de movimento reduzido so afeta `animate`/`transition` (que o Motion nunca
- * aplica durante o SSR, so depois de montado) — pula direto para "visible"
- * sem duracao, em vez de trocar a estrutura do DOM.
+ * IMPORTANTE (bug real encontrado e corrigido nesta mesma classe de
+ * problema, varias vezes neste projeto): nunca deixar um valor SO
+ * conhecido no cliente (media query de reduced-motion, e agora de
+ * viewport mobile) mudar o que e renderizado na PRIMEIRA passada — so o
+ * `animate`/`transition` (que o Motion nunca aplica durante o SSR) pode
+ * depender desses valores; `initial="hidden"` e os `variants` usados por
+ * ele continuam vindo de `motionVariants[variant]` (o mesmo de sempre)
+ * ate o hook `useIsMobileViewport` confirmar, DEPOIS de montado, que a
+ * tela e mobile — so a partir dai a variante lateral entra em jogo.
  */
 export function ScrollReveal({
   children,
@@ -69,18 +86,36 @@ export function ScrollReveal({
   amount = 0.15,
   delay = 0,
   as = "div",
+  direction,
+  mobileDistance = 32,
+  mobileDelay,
 }: ScrollRevealProps) {
   const shouldReduceMotion = useReducedMotion();
   const reduced = Boolean(shouldReduceMotion);
+  const isMobile = useIsMobileViewport();
+
+  // So ativa a variante mobile depois de confirmado (pos-montagem) que a
+  // tela e realmente mobile — `isMobile` comeca `false` (mesmo valor do
+  // servidor), entao a primeira pintura do cliente usa sempre
+  // `motionVariants[variant]`, igual ao servidor. Nenhum mismatch possivel.
+  const useMobileReveal = isMobile && direction !== undefined;
+
+  const effectiveVariants = useMobileReveal
+    ? mobileDirectionVariants(direction, mobileDistance)
+    : motionVariants[variant];
+  const effectiveTransitionBase = useMobileReveal ? mobileRevealTransition : defaultTransition;
+  const effectiveDelay = useMobileReveal && mobileDelay !== undefined ? mobileDelay : delay;
+  const effectiveAmount = useMobileReveal ? 0.2 : amount;
+  const effectiveMargin = useMobileReveal ? "0px 0px -60px 0px" : undefined;
 
   const triggerProps = reduced
     ? { animate: "visible", transition: { duration: 0 } }
     : trigger === "mount"
-      ? { animate: "visible", transition: { ...defaultTransition, delay } }
+      ? { animate: "visible", transition: { ...effectiveTransitionBase, delay: effectiveDelay } }
       : {
           whileInView: "visible",
-          viewport: { once, amount },
-          transition: { ...defaultTransition, delay },
+          viewport: { once, amount: effectiveAmount, margin: effectiveMargin },
+          transition: { ...effectiveTransitionBase, delay: effectiveDelay },
         };
 
   const MotionTag = as === "li" ? motion.li : motion.div;
@@ -89,7 +124,7 @@ export function ScrollReveal({
     <MotionTag
       className={cn("motion-reveal", className)}
       initial="hidden"
-      variants={motionVariants[variant]}
+      variants={effectiveVariants}
       {...triggerProps}
     >
       {children}

@@ -21,6 +21,8 @@ export function SolutionSection() {
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
+          direction="left"
+          mobileDistance={28}
           className="flex max-w-2xl flex-col items-center gap-4 text-center"
         >
           <span className="text-label text-primary font-medium tracking-wide uppercase">
@@ -49,6 +51,8 @@ export function SolutionSection() {
         <ScrollReveal
           variant="fade-up"
           delay={0.2}
+          direction="left"
+          mobileDistance={28}
           className="mt-16 grid w-full max-w-4xl items-center gap-10 sm:mt-20 lg:grid-cols-2 lg:gap-14"
         >
           <div className="lg:order-2 lg:text-left">
@@ -77,6 +81,8 @@ export function SolutionSection() {
         <ScrollReveal
           variant="fade-up"
           delay={0.25}
+          direction="left"
+          mobileDistance={28}
           className="mt-16 max-w-md text-center sm:mt-20"
         >
           <p className="text-h4 font-medium text-balance">
@@ -84,43 +90,53 @@ export function SolutionSection() {
           </p>
         </ScrollReveal>
 
-        <ScrollReveal
-          variant="fade-up"
-          delay={0.3}
-          className="mt-8 grid w-full max-w-2xl grid-cols-1 items-start gap-4 sm:grid-cols-2"
-        >
-          <Card className="flex flex-col gap-4 p-6">
-            <div className="flex flex-col gap-1 text-center">
-              <p className="text-h4 font-semibold">Relatório profissional</p>
-              <p className="text-small text-muted-foreground">
-                Documenta o cenário analisado e as melhorias executadas, com
-                comparação de antes/depois sempre que houver dados reais para
-                isso.
-              </p>
-            </div>
-            <ReportShowcase />
-          </Card>
+        <div className="mt-8 grid w-full max-w-2xl grid-cols-1 items-start gap-4 sm:grid-cols-2">
+          <ScrollReveal
+            variant="fade-up"
+            delay={0.3}
+            direction="left"
+            mobileDistance={28}
+          >
+            <Card className="flex flex-col gap-4 p-6">
+              <div className="flex flex-col gap-1 text-center">
+                <p className="text-h4 font-semibold">Relatório profissional</p>
+                <p className="text-small text-muted-foreground">
+                  Documenta o cenário analisado e as melhorias executadas, com
+                  comparação de antes/depois sempre que houver dados reais
+                  para isso.
+                </p>
+              </div>
+              <ReportShowcase />
+            </Card>
+          </ScrollReveal>
 
-          <Card className="flex flex-col gap-4 p-6">
-            <div
-              aria-hidden="true"
-              className="border-primary/25 bg-accent relative mx-auto flex h-16 w-16 items-center justify-center rounded-lg border"
-            >
-              <BookOpen size={24} className="text-primary" />
-              <span
+          <ScrollReveal
+            variant="fade-up"
+            delay={0.3}
+            direction="right"
+            mobileDistance={28}
+          >
+            <Card className="flex flex-col gap-4 p-6">
+              <div
                 aria-hidden="true"
-                className="bg-purple-luminous absolute -top-1 -right-1 h-2 w-2 rounded-full"
-              />
-            </div>
-            <div className="flex flex-col gap-1 text-center">
-              <p className="text-h4 font-semibold">Manual de boas práticas</p>
-              <p className="text-small text-muted-foreground">
-                Orientações práticas para manter a qualidade do perfil no dia a
-                dia, com autonomia — sem depender de nós para tudo.
-              </p>
-            </div>
-          </Card>
-        </ScrollReveal>
+                className="border-primary/25 bg-accent relative mx-auto flex h-16 w-16 items-center justify-center rounded-lg border"
+              >
+                <BookOpen size={24} className="text-primary" />
+                <span
+                  aria-hidden="true"
+                  className="bg-purple-luminous absolute -top-1 -right-1 h-2 w-2 rounded-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1 text-center">
+                <p className="text-h4 font-semibold">Manual de boas práticas</p>
+                <p className="text-small text-muted-foreground">
+                  Orientações práticas para manter a qualidade do perfil no
+                  dia a dia, com autonomia — sem depender de nós para tudo.
+                </p>
+              </div>
+            </Card>
+          </ScrollReveal>
+        </div>
       </Container>
     </Section>
   );

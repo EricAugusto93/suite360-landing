@@ -24,6 +24,8 @@ export function DiagnosticSection() {
       <Container className="relative flex flex-col items-center gap-10">
         <ScrollReveal
           variant="fade-up"
+          direction="right"
+          mobileDistance={28}
           className="flex max-w-2xl flex-col items-center gap-4 text-center"
         >
           <span className="text-label text-primary font-medium tracking-wide uppercase">
@@ -37,9 +39,16 @@ export function DiagnosticSection() {
           </p>
         </ScrollReveal>
 
+        {/*
+          O painel inteiro (barra de janela + DiagnosticWizard) entra como
+          UMA unica peca no mobile — nunca campo a campo (pedido explicito
+          do usuario: animar cada campo deixaria o formulario "cansativo").
+        */}
         <ScrollReveal
           variant="fade-up"
           delay={0.1}
+          direction="right"
+          mobileDistance={32}
           className="border-border bg-card shadow-elevated w-full max-w-2xl overflow-hidden rounded-xl border hover:border-primary/25 transition-colors duration-300"
         >
           <div

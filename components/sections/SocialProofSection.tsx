@@ -35,6 +35,8 @@ export function SocialProofSection() {
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
+          direction="right"
+          mobileDistance={28}
           className="flex max-w-2xl flex-col items-center gap-4 text-center"
         >
           <span className="text-label text-primary font-medium tracking-wide uppercase">
@@ -54,6 +56,8 @@ export function SocialProofSection() {
         <ScrollReveal
           variant="fade-up"
           delay={0.1}
+          direction="right"
+          mobileDistance={28}
           className="mt-10 flex flex-wrap items-center justify-center gap-2"
         >
           {EVIDENCE_CATEGORIES.map((category) => (

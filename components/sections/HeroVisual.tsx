@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/cn";
+import { useIsMobileViewport } from "@/lib/useIsMobileViewport";
 import {
   CategoriesMark,
   LocationMark,
@@ -38,6 +39,21 @@ const LABEL_LOOP_DURATION = 11;
 const WAVE_DURATION = 4.5;
 const WAVE_COUNT = 4;
 
+/**
+ * No mobile, o radar so aparece DEPOIS do texto/CTAs (ver Hero.tsx:
+ * `mobileDelay={0.42}` no ScrollReveal que envolve o HeroVisual). Sem este
+ * atraso extra, as ondas e o pulso dos sinais comecariam a "correr" desde o
+ * mount — por baixo do wrapper ainda transparente — e na hora em que o
+ * radar terminasse de entrar, o movimento ja estaria fora de fase (pedido
+ * explicito do usuario: ondas/pinos so podem comecar APOS a entrada do
+ * radar). Valor = mobileDelay (0.42s) + duracao da transicao de entrada
+ * (mobileRevealTransition, 0.65s) do lib/motion.ts, arredondado. So se
+ * aplica no mobile — no desktop este componente sempre monta com o wrapper
+ * ja visivel de imediato (sem mobileDelay), entao `entranceDelay` fica 0 e
+ * o comportamento e identico ao de antes.
+ */
+const MOBILE_ENTRANCE_DELAY = 1.1;
+
 function polarToPercent(angleDeg: number, radiusPercent: number) {
   const rad = (angleDeg * Math.PI) / 180;
   return {
@@ -69,10 +85,12 @@ function RadarTarget({
   target,
   index,
   reduced,
+  entranceDelay,
 }: {
   target: Target;
   index: number;
   reduced: boolean;
+  entranceDelay: number;
 }) {
   const { label, Icon, angle, radius } = target;
   const { left, top } = polarToPercent(angle, radius);
@@ -86,6 +104,7 @@ function RadarTarget({
         repeat: Infinity,
         ease: "easeInOut" as const,
         times: pulseTimes(fraction),
+        delay: entranceDelay,
       };
 
   const floatTransition = reduced
@@ -94,7 +113,7 @@ function RadarTarget({
         duration: 4.5 + index * 0.35,
         repeat: Infinity,
         ease: "easeInOut" as const,
-        delay: index * 0.25,
+        delay: index * 0.25 + entranceDelay,
       };
 
   return (
@@ -204,6 +223,8 @@ function RadarTarget({
 export function HeroVisual() {
   const shouldReduceMotion = useReducedMotion();
   const reduced = Boolean(shouldReduceMotion);
+  const isMobile = useIsMobileViewport();
+  const entranceDelay = isMobile ? MOBILE_ENTRANCE_DELAY : 0;
 
   return (
     <div
@@ -269,7 +290,7 @@ export function HeroVisual() {
                     duration: WAVE_DURATION,
                     repeat: Infinity,
                     ease: "easeOut",
-                    delay: (i * WAVE_DURATION) / WAVE_COUNT,
+                    delay: (i * WAVE_DURATION) / WAVE_COUNT + entranceDelay,
                   }
             }
           />
@@ -310,7 +331,12 @@ export function HeroVisual() {
         transition={
           reduced
             ? { duration: 0 }
-            : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }
+            : {
+                duration: 3.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: entranceDelay,
+              }
         }
       >
         {/* Iluminacao interna do nucleo. */}
@@ -335,6 +361,7 @@ export function HeroVisual() {
           target={target}
           index={index}
           reduced={reduced}
+          entranceDelay={entranceDelay}
         />
       ))}
     </div>
