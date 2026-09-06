@@ -13,11 +13,10 @@ export const contentType = "image/png";
  * nao Edge — padrao do App Router para `opengraph-image.tsx` quando nao
  * declarado `runtime = "edge"`).
  *
- * A logo atual e um lockup quadrado (875x875, com a propria textura em
- * marmore preto de fundo) — por isso e renderizada em `width === height`
- * aqui (nunca esticada num retangulo largo, o que distorceria o desenho),
- * com o card do OG tambem em preto para casar com o fundo do proprio
- * arquivo (sem borda visivel entre a logo e o restante do card).
+ * A logo voltou a ser o wordmark "Suite" (462x294, preto sobre fundo
+ * transparente — ver Logo.tsx) — por isso o card do OG precisa de um fundo
+ * CLARO para o desenho ficar visivel (o fundo preto usado quando a logo
+ * era o lockup em marmore deixaria este arquivo invisivel aqui).
  */
 export default function Image() {
   const logoBuffer = readFileSync(
@@ -35,18 +34,12 @@ export default function Image() {
         alignItems: "center",
         justifyContent: "center",
         gap: 32,
-        background: "#050505",
+        background: "#ffffff",
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse (Satori) exige <img>, nao suporta next/image */}
-      <img
-        src={logoSrc}
-        width={280}
-        height={280}
-        alt=""
-        style={{ borderRadius: 24 }}
-      />
-      <span style={{ fontSize: 30, fontWeight: 400, color: "#a1a1aa" }}>
+      <img src={logoSrc} width={420} height={267} alt="" />
+      <span style={{ fontSize: 30, fontWeight: 400, color: "#52525b" }}>
         Presença e desempenho local no Google
       </span>
       <div
