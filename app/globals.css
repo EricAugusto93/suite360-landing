@@ -73,6 +73,22 @@
   /* 1360px — teto da faixa pedida (1240-1360px), para o conteudo ocupar a
      viewport como uma landing premium em vez de uma coluna estreita. */
   --s360-container-max-width: 85rem;
+
+  /*
+   * "Fundo infinito" — tokens do fundo ambiente unico atras de toda a
+   * pagina (ver components/layout/AmbientBackground.tsx), que substituiu
+   * as antigas faixas solidas por secao (bg-background/bg-background-alt/
+   * bg-muted em Section.tsx). Variantes mais DISCRETAS dos brilhos ja
+   * existentes (--s360-glow-blue/--s360-glow-purple), pensadas para
+   * grandes areas desfocadas cobrindo varias secoes de uma vez — usar os
+   * brilhos "normais" nessa escala ficaria forte demais. --s360-navy e o
+   * unico tom realmente novo (azul-marinho profundo, mais escuro/neutro
+   * que o azul primario da marca).
+   */
+  --s360-ambient-blue: rgba(8, 102, 255, 0.16);
+  --s360-ambient-blue-soft: rgba(67, 133, 255, 0.12);
+  --s360-ambient-navy: rgba(16, 35, 74, 0.75);
+  --s360-ambient-purple: rgba(139, 92, 246, 0.12);
 }
 
 @theme inline {
@@ -190,6 +206,73 @@ body {
     linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
   background-size: 64px 64px;
+}
+
+/*
+ * Fundo infinito: cada "blob" e um radial-gradient grande e desfocado,
+ * com sua propria animacao lenta de respiracao (posicao + escala +
+ * opacidade). Tres keyframes distintos (nunca o mesmo, mesmo com atraso
+ * diferente) para os focos nao pulsarem em sincronia — o que pareceria um
+ * objeto piscando, nao uma iluminacao ambiente respirando. So anima
+ * `transform`/`opacity` (compositor, nunca reflow/repaint pesado). A regra
+ * `prefers-reduced-motion` global logo abaixo ja reduz `animation-duration`
+ * para 0.01ms em todo o site — aqui isso e suficiente para "desligar" a
+ * respiracao: apos essa unica iteracao quase instantanea, o elemento volta
+ * ao seu estado BASE (definido diretamente no componente, nunca dentro do
+ * keyframe), entao a composicao/profundidade visual continua identica,
+ * so sem o movimento.
+ */
+.s360-ambient-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  will-change: transform, opacity;
+}
+
+@keyframes s360-ambient-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(1.5%, 2%, 0) scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes s360-ambient-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate3d(-2%, -1.5%, 0) scale(0.95);
+    opacity: 0.95;
+  }
+}
+
+@keyframes s360-ambient-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.97);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate3d(1%, -2%, 0) scale(1.06);
+    opacity: 1;
+  }
+}
+
+.s360-ambient-anim-a {
+  animation: s360-ambient-drift-a 18s ease-in-out infinite;
+}
+.s360-ambient-anim-b {
+  animation: s360-ambient-drift-b 23s ease-in-out infinite;
+}
+.s360-ambient-anim-c {
+  animation: s360-ambient-drift-c 15s ease-in-out infinite;
 }
 
 /* Acessibilidade: respeita a preferencia do usuario por menos animacao (PLANEJAMENTO.md, secao 10) */

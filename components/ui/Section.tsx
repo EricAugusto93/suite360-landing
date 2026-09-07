@@ -8,18 +8,25 @@ type SectionProps = ComponentPropsWithoutRef<"section"> & {
 };
 
 /**
- * Toda a experiencia e escura por padrao (app/globals.css) — as variantes
- * abaixo nao alternam claro/escuro, elas alternam o TOM de preto usado
- * pela secao, para criar separacao sem recorrer ao mesmo preto chapado em
- * toda parte (pedido explicito do usuario).
+ * ATE A REFORMULACAO DO "FUNDO INFINITO": cada variante pintava um tom de
+ * preto solido diferente (bg-background/bg-background-alt/bg-muted) para
+ * separar secoes vizinhas sem repetir o mesmo preto chapado. Na pratica
+ * isso criava o problema oposto — faixas horizontais bem visiveis exatamente
+ * nos limites entre secoes com variantes diferentes (pedido explicito do
+ * usuario para eliminar).
+ *
+ * As tres variantes agora sao transparentes: a atmosfera continua (ver
+ * AmbientBackground.tsx, renderizada uma unica vez atras de toda a pagina
+ * em app/layout.tsx) e quem preenche o fundo. `variant` continua existindo
+ * — e todo `<Section variant="...">` do projeto continua passando esse
+ * prop sem precisar mudar nenhum arquivo — apenas para permitir uma
+ * futura distincao semantica sem repetir o erro de pintar retangulos
+ * solidos por secao.
  */
 const variantClasses: Record<SectionVariant, string> = {
-  /** Preto profundo — tom "de repouso" da pagina. */
-  base: "bg-background",
-  /** Leve variacao de preto — alterna com `base` entre secoes vizinhas. */
-  alt: "bg-background-alt",
-  /** Superficie elevada — paineis de maior impacto (Problema, Metodologia, CTA final). */
-  elevated: "bg-muted",
+  base: "bg-transparent",
+  alt: "bg-transparent",
+  elevated: "bg-transparent",
 };
 
 /**

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
+import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { WhatsAppFloatingButton } from "@/components/ui/WhatsAppFloatingButton";
@@ -83,7 +84,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} antialiased`}>
-      <body className="flex min-h-screen flex-col">
+      <body className="relative flex min-h-screen flex-col">
+        {/*
+          "Fundo infinito" — camada ambiental unica atras de TODA a pagina
+          (ver AmbientBackground.tsx), em vez de cada Section pintar seu
+          proprio retangulo solido (o que criava faixas horizontais visiveis
+          entre secoes vizinhas). Primeiro filho do <body> (que precisa de
+          `relative` para este `absolute inset-0` se esticar corretamente
+          por toda a altura real da pagina, nao so a primeira tela) —
+          renderizado antes do Header/main/Footer para ficar atras deles na
+          ordem de empilhamento padrao (sem precisar de z-index negativo).
+        */}
+        <AmbientBackground />
+
         {/*
           Sentinela observada pelo Header (IntersectionObserver) para saber
           se a pagina ainda esta no topo — o Header comeca transparente e

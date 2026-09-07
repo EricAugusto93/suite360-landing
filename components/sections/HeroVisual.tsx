@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 import { useIsMobileViewport } from "@/lib/useIsMobileViewport";
 import {
@@ -307,13 +308,10 @@ export function HeroVisual() {
       </div>
 
       {/*
-        Núcleo — "G" do Google, a pedido do usuario (referencia: esfera
-        azul luminosa com aneis concentricos translucidos e um "G" branco
-        em destaque). Diferente do simbolo colorido oficial do Google
-        (aquele SIM exigiria o ativo oficial): aqui e apenas a LETRA "G"
-        em branco, um caractere generico, sem tentar reproduzir a marca
-        registrada — por isso pode ser renderizado diretamente, sem
-        depender de nenhum arquivo externo.
+        Núcleo — "G" colorido oficial do Google (public/images/google-g.png,
+        fornecido pelo usuario), substituindo a letra "G" branca generica
+        usada antes. Nenhum filtro/cor/opacidade aplicado sobre a imagem —
+        as cores originais do arquivo sao preservadas exatamente.
       */}
       <div className="pointer-events-none absolute top-1/2 left-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-400/20 sm:h-36 sm:w-36" />
       <div className="pointer-events-none absolute top-1/2 left-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-400/25 sm:h-32 sm:w-32" />
@@ -348,9 +346,13 @@ export function HeroVisual() {
           }}
         />
         <div className="relative flex h-full w-full items-center justify-center">
-          <span className="text-3xl leading-none font-black text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)] sm:text-4xl">
-            G
-          </span>
+          <Image
+            src="/images/google-g.png"
+            alt="Google"
+            width={1200}
+            height={1200}
+            className="h-10 w-10 object-contain sm:h-12 sm:w-12"
+          />
         </div>
       </motion.div>
 
