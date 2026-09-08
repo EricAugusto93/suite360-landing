@@ -1,8 +1,9 @@
 "use client";
 
 import type { RefObject } from "react";
-import { Card } from "@/components/ui/Card";
+import { ClipboardCheck } from "lucide-react";
 import { WhatsAppLinkButton } from "@/components/ui/WhatsAppLinkButton";
+import { cn } from "@/lib/cn";
 import { resolveStateLabel } from "@/lib/constants";
 import type { DiagnosticData } from "@/lib/types";
 import {
@@ -29,6 +30,17 @@ type ConfirmationStepProps = {
  * para um tom de status operacional ("indisponivel no momento"), em vez de
  * expor um roteiro de lancamento ("sera ativado em breve") — ver
  * PLANEJAMENTO.md, secao 14.12.
+ *
+ * ETAPA 4B: fechamento premium do console — cabecalho com icone decorativo
+ * (nenhuma celebracao/confete/metrica, so um icone de confirmacao), resumo
+ * transformado de uma unica caixa com divisores num grid de "cards" de
+ * revisao individuais (2 colunas no desktop quando 5 itens cabem
+ * equilibrados — 2+2+1, o ultimo ocupando a largura toda; 1 coluna no
+ * mobile), e o CTA final corrigido para nao quebrar de forma apertada no
+ * mobile (altura flexivel com `min-height`, em vez de uma altura fixa que
+ * cortava o texto em duas linhas). Nenhum dos 5 valores reais, links
+ * Editar, texto do CTA ou logica de WhatsApp foi alterado — so a moldura
+ * visual em volta deles.
  */
 export function ConfirmationStep({
   titleRef,
@@ -66,42 +78,55 @@ export function ConfirmationStep({
   const configured = isWhatsAppConfigured();
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-      <div className="flex flex-col gap-2 text-center">
-        <h3
-          ref={titleRef}
-          tabIndex={-1}
-          className="text-h3 font-semibold focus:outline-none"
+    <div className="mx-auto flex w-full flex-col gap-7 sm:max-w-[600px]">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <span
+          aria-hidden="true"
+          className="border-primary/30 bg-accent text-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
         >
-          Pronto. Vamos analisar seu cenário.
-        </h3>
-        <p className="text-body text-muted-foreground">
-          Confira os dados abaixo antes de continuar.
-        </p>
+          <ClipboardCheck size={20} />
+        </span>
+        <div className="flex flex-col gap-2">
+          <h3
+            ref={titleRef}
+            tabIndex={-1}
+            className="text-h3 font-semibold focus:outline-none"
+          >
+            Pronto. Vamos analisar seu cenário.
+          </h3>
+          <p className="text-body text-muted-foreground">
+            Confira os dados abaixo antes de continuar.
+          </p>
+        </div>
       </div>
 
-      <Card className="divide-border flex flex-col divide-y p-1">
-        {rows.map((row) => (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {rows.map((row, index) => (
           <div
             key={row.label}
-            className="flex items-center justify-between gap-4 px-4 py-3"
+            className={cn(
+              "flex items-start justify-between gap-3 rounded-xl border border-[rgba(103,140,255,0.14)] bg-[linear-gradient(165deg,rgba(20,22,28,0.85)_0%,rgba(11,13,18,0.92)_100%)] px-4 py-3.5",
+              index === rows.length - 1 ? "sm:col-span-2" : "",
+            )}
           >
-            <div className="flex flex-col text-left">
-              <span className="text-caption text-muted-foreground">
+            <div className="flex min-w-0 flex-col gap-1 text-left">
+              <span className="text-caption text-muted-foreground tracking-wide uppercase">
                 {row.label}
               </span>
-              <span className="text-body font-medium">{row.value}</span>
+              <span className="text-body text-foreground font-semibold break-words">
+                {row.value}
+              </span>
             </div>
             <button
               type="button"
               onClick={() => onEditStep(row.stepIndex)}
-              className="text-small text-primary focus-visible:ring-primary focus-visible:ring-offset-background shrink-0 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="text-primary focus-visible:ring-primary focus-visible:ring-offset-background text-small shrink-0 rounded-md px-2 py-1 font-medium transition-colors duration-200 hover:bg-primary/10 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Editar
             </button>
           </div>
         ))}
-      </Card>
+      </div>
 
       <div className="flex flex-col items-center gap-3">
         <WhatsAppLinkButton
@@ -109,7 +134,7 @@ export function ConfirmationStep({
           source="diagnostic"
           variant="primary"
           size="lg"
-          className="w-full"
+          className="!h-auto w-full !min-h-[60px] !px-6 !py-3 !text-[14px] !leading-snug text-center sm:w-auto sm:!min-h-[56px] sm:!px-10 sm:!text-[15px]"
         >
           Consultar meu diagnóstico gratuito
         </WhatsAppLinkButton>

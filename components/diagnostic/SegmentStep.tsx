@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import { cn } from "@/lib/cn";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { SEGMENT_OPTIONS } from "@/lib/constants";
@@ -24,33 +25,51 @@ export function SegmentStep({
 }: SegmentStepProps) {
   return (
     <div className="flex flex-col gap-6">
-      <h3
-        ref={titleRef}
-        tabIndex={-1}
-        className="text-h3 text-center font-semibold focus:outline-none"
-      >
-        Qual é o segmento da sua empresa?
-      </h3>
+      {/*
+        ETAPA 4A: texto de apoio agrupado com a pergunta (gap-2, mesmo bloco
+        centralizado) — mais proximo dela do que do grid de opcoes logo
+        abaixo (que continua no gap-6 do container externo).
+      */}
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h3
+          ref={titleRef}
+          tabIndex={-1}
+          className="text-h3 font-semibold focus:outline-none"
+        >
+          Qual é o segmento da sua empresa?
+        </h3>
+        <p className="text-muted-foreground max-w-sm text-[15px] leading-relaxed sm:text-[16px]">
+          Selecione a opção que melhor representa o seu negócio.
+        </p>
+      </div>
 
       <div
         role="group"
         aria-label="Segmento da empresa"
         className="grid grid-cols-2 gap-3 sm:grid-cols-4"
       >
-        {SEGMENT_OPTIONS.map(({ value: option, label, icon: Icon }) => (
-          <OptionCard
-            key={option}
-            selected={value === option}
-            onClick={() => onSelect(option)}
-          >
-            <Icon
-              size={20}
-              className="text-muted-foreground"
-              aria-hidden="true"
-            />
-            <span className="text-small font-medium">{label}</span>
-          </OptionCard>
-        ))}
+        {SEGMENT_OPTIONS.map(({ value: option, label, icon: Icon }) => {
+          const selected = value === option;
+          return (
+            <OptionCard
+              key={option}
+              selected={selected}
+              onClick={() => onSelect(option)}
+            >
+              <Icon
+                size={24}
+                className={cn(
+                  "transition-colors duration-200",
+                  selected
+                    ? "text-primary drop-shadow-[0_0_5px_rgba(8,102,255,0.6)]"
+                    : "text-muted-foreground",
+                )}
+                aria-hidden="true"
+              />
+              <span className="text-small font-medium">{label}</span>
+            </OptionCard>
+          );
+        })}
       </div>
 
       {value === "Outro" && (

@@ -4,9 +4,8 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Transition, Variants } from "motion/react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Progress } from "@/components/ui/Progress";
 import { trackEvent } from "@/lib/analytics";
 import type { DiagnosticStepId } from "@/lib/types";
 import { useIsMobileViewport } from "@/lib/useIsMobileViewport";
@@ -17,6 +16,7 @@ import {
   initialDiagnosticState,
   validateStep,
 } from "./diagnosticReducer";
+import { SegmentedProgress } from "./SegmentedProgress";
 import { SegmentStep } from "./SegmentStep";
 import { SizeStep } from "./SizeStep";
 import { StateStep } from "./StateStep";
@@ -31,7 +31,15 @@ const STEP_LABELS: Record<DiagnosticStepId, string> = {
   confirmation: "Confirmação",
 };
 
-const STEP_TRANSITION: Transition = { duration: 0.18, ease: [0.16, 1, 0.3, 1] };
+// ETAPA 5 — duracao alinhada ao alvo explicito desta etapa (0.4s-0.6s;
+// era 0.18s, rapida demais). Compartilhada pelo fade/slide de entrada e
+// saida das etapas E pela altura animada do container (`motion.div layout`
+// mais abaixo) — um unico numero para as duas coisas mantem o "morph" de
+// altura e o conteudo sincronizados. Sob `prefers-reduced-motion`,
+// `buildStepVariants` ja retorna estados identicos (sem interpolacao
+// visivel) independente desta duracao — nenhum ajuste extra necessario
+// para o movimento reduzido continuar instantaneo.
+const STEP_TRANSITION: Transition = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
 
 type SlideDirection = 1 | -1;
 
@@ -98,6 +106,57 @@ export function DiagnosticWizard() {
   // ficaria um passo atrasado). `useState` aqui e o certo: o valor so
   // importa para a proxima renderizacao apos o clique, nunca antes.
   const [slideDirection, setSlideDirection] = useState<SlideDirection>(1);
+  // ETAPA 5 — auditoria de cliques rapidos encontrou um problema real: um
+  // duplo-clique em Avancar (ou Avancar seguido imediatamente de Voltar)
+  // dispara duas transicoes de etapa sobrepostas antes da primeira
+  // terminar. Isso nao pula etapa nem duplica analytics (o reducer e
+  // `hasCompletedRef` ja protegem isso), mas confirmado via
+  // `elementFromPoint` que o navegador chega a pintar a barra superior do
+  // console (`DiagnosticSection.tsx`) na posicao de outro elemento
+  // completamente diferente ate a pagina ser recarregada — um dessincronia
+  // de composicao do Chromium sob layout animations sobrepostas (Motion
+  // `layout`/`popLayout`), nao um bug de CSS/layout do codigo em si (nenhum
+  // `transform` residual em nenhum elemento da cadeia; nem scroll, resize
+  // ou hover corrigem sozinhos). A correcao minima e impedir que uma
+  // segunda transicao comece antes da primeira acabar — um debounce simples
+  // por tempo (janela igual a `STEP_TRANSITION.duration` + folga),
+  // aplicado tanto no dispatch (`goNext`/Voltar/Editar, entao Enter durante
+  // a transicao tambem e ignorado) quanto visualmente (Avancar/Voltar
+  // desabilitados enquanto `isTransitioning`).
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  // Guarda de LEITURA/ESCRITA sincrona (ref) separada do `isTransitioning`
+  // de estado: o valor de estado so fica visivel para handlers em uma
+  // RENDERIZACAO futura (React agrupa a atualizacao), entao dois cliques
+  // disparados antes desse re-render enxergam a MESMA closure com
+  // `isTransitioning=false` — o `if (isTransitioning) return` sozinho nao
+  // bloqueia o segundo clique a tempo. O ref e lido/escrito imediatamente,
+  // sem esperar um render, entao bloqueia o segundo clique de verdade; o
+  // estado continua existindo so para o feedback visual (`disabled` nos
+  // botoes), que pode acompanhar um render depois sem problema.
+  const isTransitioningRef = useRef(false);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  function beginTransition() {
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+    }
+    transitionTimeoutRef.current = setTimeout(() => {
+      isTransitioningRef.current = false;
+      setIsTransitioning(false);
+    }, 500);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const currentStepId = STEP_ORDER[state.stepIndex];
   const stepNumber = state.stepIndex + 1;
@@ -133,6 +192,7 @@ export function DiagnosticWizard() {
   }, [state.stepIndex]);
 
   function goNext() {
+    if (isTransitioningRef.current) return;
     const error = validateStep(currentStepId, state.data);
     if (error) {
       dispatch({ type: "SET_ERROR", message: error });
@@ -140,6 +200,7 @@ export function DiagnosticWizard() {
     }
     const nextIndex = state.stepIndex + 1;
     setSlideDirection(1);
+    beginTransition();
     dispatch({ type: "NEXT" });
     // `step` e a etapa que acabou de ser preenchida/validada (nunca o
     // valor digitado — so o identificador da etapa, ver lib/types.ts).
@@ -161,15 +222,11 @@ export function DiagnosticWizard() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground font-medium">
-          Etapa {stepNumber} de {totalSteps}
-        </p>
-        <Progress
-          value={(stepNumber / totalSteps) * 100}
-          label={`Etapa ${stepNumber} de ${totalSteps}: ${STEP_LABELS[currentStepId]}`}
-        />
-      </div>
+      <SegmentedProgress
+        currentStep={stepNumber}
+        totalSteps={totalSteps}
+        label={`Etapa ${stepNumber} de ${totalSteps}: ${STEP_LABELS[currentStepId]}`}
+      />
 
       <form onSubmit={handleSubmit} noValidate>
         {/*
@@ -274,7 +331,9 @@ export function DiagnosticWizard() {
                   titleRef={titleRef}
                   data={state.data}
                   onEditStep={(index) => {
+                    if (isTransitioningRef.current) return;
                     setSlideDirection(-1);
+                    beginTransition();
                     dispatch({ type: "GOTO", index });
                   }}
                 />
@@ -284,27 +343,48 @@ export function DiagnosticWizard() {
         </motion.div>
 
         {currentStepId !== "confirmation" ? (
-          <div className="mt-8 flex items-center justify-between gap-4">
-            {state.stepIndex > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setSlideDirection(-1);
-                  dispatch({ type: "BACK" });
-                }}
-              >
-                <ArrowLeft size={16} />
-                Voltar
-              </Button>
-            ) : (
-              <span aria-hidden="true" />
-            )}
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {/*
+              ETAPA 4A — aviso de tempo, no rodape compartilhado por todas as
+              etapas do formulario (nunca aparece na confirmacao, ja que
+              este bloco inteiro so renderiza quando `currentStepId !==
+              "confirmation"`). Icone decorativo (`aria-hidden`): o texto
+              sozinho ja comunica o significado.
+            */}
+            <div className="text-muted-foreground flex items-center gap-2 text-[0.8125rem] sm:text-[0.875rem]">
+              <ShieldCheck
+                size={16}
+                className="text-primary shrink-0"
+                aria-hidden="true"
+              />
+              <span>Leva menos de 2 minutos</span>
+            </div>
 
-            <Button type="submit" variant="primary">
-              Avançar
-              <ArrowRight size={16} />
-            </Button>
+            <div className="flex items-center justify-between gap-4 sm:justify-end">
+              {state.stepIndex > 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={isTransitioning}
+                  onClick={() => {
+                    if (isTransitioningRef.current) return;
+                    setSlideDirection(-1);
+                    beginTransition();
+                    dispatch({ type: "BACK" });
+                  }}
+                >
+                  <ArrowLeft size={16} />
+                  Voltar
+                </Button>
+              ) : (
+                <span aria-hidden="true" />
+              )}
+
+              <Button type="submit" variant="primary" disabled={isTransitioning}>
+                Avançar
+                <ArrowRight size={16} />
+              </Button>
+            </div>
           </div>
         ) : null}
       </form>
