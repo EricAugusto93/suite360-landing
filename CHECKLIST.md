@@ -369,6 +369,38 @@
 
 ---
 
+## Trabalho fora do fluxo de fases — Redesign Diagnóstico/Sinais de Alerta + GitHub/Vercel
+
+> Repositório novo criado e conectado à Vercel para permitir preview/deploy real durante o redesign (`EricAugusto93/suite360-landing`, produção em `https://suite360-landing.vercel.app`). Trabalho conduzido em etapas curtas, cada uma com validação visual/funcional antes de avançar para a próxima, mesmo fora da numeração de FASEs.
+
+- [x] Bug real corrigido: efeito "ondas" sobre os cards da seção Sinais de Alerta — `blur`/opacidade do Header no estado com scroll eram fracos demais (`bg-background/70` deixava ~30% do conteúdo rolado transparecer, borrado); corrigido para `bg-background/95` + `backdrop-blur-xl`
+- [x] Repositório GitHub criado (`github.com/EricAugusto93/suite360-landing`, remoto `github-new`), commit e push realizados
+- [x] Deploy em produção na Vercel (projeto `suite360films/suite360-landing`) — live em `https://suite360-landing.vercel.app`
+
+**Diagnóstico (console do wizard) — ETAPAS 1-5:**
+
+- [x] ETAPA 1 — Auditoria somente-leitura completa da seção antes de qualquer alteração
+- [x] ETAPA 2 — Cabeçalho/atmosfera reformulados (eyebrow + régua + pill dinâmico via `DIAGNOSTIC_STEP_IDS.length`, grid técnico/glow/circuito externos)
+- [x] ETAPA 3 — Console analítico (chrome "Análise guiada") + `SegmentedProgress.tsx` criado (progresso em blocos discretos, substitui a barra contínua no wizard)
+- [x] ETAPA 4A — Opções/estado selecionado/navegação (`OptionCard`, `SegmentStep`, `SizeStep`, `DiagnosticWizard`): indicador de check, superfícies com profundidade, aviso "leva menos de 2 minutos"
+- [x] ETAPA 4B — Select/campos de texto/confirmação (`StateStep`, `TextFieldStep`, `ConfirmationStep`): superfícies premium via overrides `!important`, ícones contextuais derivados do `fieldId`, grid de revisão na confirmação
+- [x] ETAPA 5 — Auditoria final de animação: `STEP_TRANSITION` ajustada de 0.18s para 0.45s; glow do progresso corrigido (gradiente→cor sólida, CSS não interpola cor↔gradiente); guard `isTransitioningRef` contra duplo-disparo em Avançar/Voltar/Editar
+- [ ] Limitação residual documentada (não corrigida, fora do escopo de "correção mínima"): raro dessincronismo de pintura do Chromium/Motion na barra decorativa do console, reproduzido só sob interação mais rápida que ritmo humano realista (≤800ms entre ações) — decorativo, baixa severidade
+
+**Sinais de Alerta (bento de 5 cards) — ETAPAS 6-9:**
+
+- [x] ETAPA 6 — Cabeçalho/atmosfera no mesmo vocabulário editorial já aprovado na Metodologia/Diagnóstico
+- [x] ETAPA 7 — Arquitetura dos 5 cards: numeração dinâmica (`String(index+1).padStart(2,"0")`), faixa "ATENÇÃO", hierarquia tipográfica por índice, marcas de canto a partir de `lg`
+- [x] ETAPA 8A — `ProblemVisuals.tsx` criado: 5 microvisualizações analíticas distintas, uma por card, escolhidas por índice (nenhuma métrica/número/percentual real); 2 bugs reais corrigidos (clipping mobile por colisão de classes `h-full`/`h-[Npx]`; overflow horizontal real de ~124px em 1024px por coluna de texto de largura fixa)
+- [x] ETAPA 8B — Refinamento de escala/contraste das 5 microvisualizações e reequilíbrio do espaço vazio do card 1 (grupo icone+texto+visual centralizado verticalmente em vez de ancorado nos extremos)
+- [x] ETAPA 9 — Animações de entrada: cabeçalho em sequência (linha editorial → título → descrição), cards com stagger por índice e direção alternada no mobile (01 direita, 02 esquerda, 03 direita, 04 esquerda, 05 direita), sequência de entrada própria por microvisualização (`ProblemVisuals.tsx` convertido para Client Component, mesmo padrão de `MethodologyVisuals.tsx`), `prefers-reduced-motion` completo, auditoria funcional/visual final (8 breakpoints, reload no meio da seção, scroll rápido/lento, `once:true` confirmado)
+
+- [x] Lint, type-check e build de produção sem erros em cada etapa das duas seções
+- [x] Commit único (`91635ae`) cobrindo Diagnóstico + Sinais de Alerta, enviado ao GitHub (`github-new`) e implantado em produção na Vercel
+- [ ] Validação do usuário
+
+---
+
 ## GO-LIVE (pendências externas para o lançamento)
 
 Nenhum destes itens pode ser marcado como concluído pelo código — todos dependem de uma decisão ou material do cliente.

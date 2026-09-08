@@ -31,7 +31,12 @@ const EVIDENCE_CATEGORIES = [
  */
 export function SocialProofSection() {
   return (
-    <Section variant="base">
+    // ETAPA 5 — `overflow-hidden` adicionado (mesma razao documentada em
+    // ProcessSection.tsx): a correcao real do fade lateral mobile fez os
+    // `ScrollReveal` desta secao passarem a deslocar conteudo de verdade;
+    // sem ancestral com `overflow-hidden`, isso podia extrapolar a
+    // viewport durante o estado oculto/em transicao.
+    <Section variant="base" className="overflow-hidden">
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
@@ -53,10 +58,20 @@ export function SocialProofSection() {
           </p>
         </ScrollReveal>
 
+        {/*
+          ETAPA 10 (padronizacao do fade lateral) — `direction` trocado de
+          "right" para "left": a lista de badges (uma unica unidade — cada
+          badge nao anima individualmente) entra da esquerda para a
+          direita agora. O bloco de texto (eyebrow/titulo/descricao) acima
+          mantem seu `direction="right"` original — fora do escopo desta
+          etapa (que pediu explicitamente so "o bloco/lista de
+          evidencias", identificado pela propria instrucao de nao animar
+          cada badge — ou seja, esta lista).
+        */}
         <ScrollReveal
           variant="fade-up"
           delay={0.1}
-          direction="right"
+          direction="left"
           mobileDistance={28}
           className="mt-10 flex flex-wrap items-center justify-center gap-2"
         >

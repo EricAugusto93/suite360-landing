@@ -34,6 +34,18 @@ const variantClasses: Record<SectionVariant, string> = {
  * Nao inclui largura maxima — combine com <Container> para o conteudo interno.
  * FASE 14: espacamento vertical amplo (112-160px) — composicao editorial,
  * secoes com presenca real em vez de conteudo pequeno cercado de vazio.
+ *
+ * ETAPA 3 (auditoria "fundo mobile, espacamentos") — o padding mobile
+ * (112px, igual dos dois lados de toda transicao entre secoes) estava
+ * contribuindo sozinho com 224px de vazio em toda fronteira "comum" da
+ * pagina (Sinais de Alerta->Diagnostico, Metodologia->Processo, Provas
+ * Sociais->FAQ). Reduzido para 64px (`py-16`) abaixo de 640px e 80px
+ * (`sm:py-20`) entre 640-767px — a faixa 768px+ (tablet largo/desktop)
+ * MANTEM os valores originais (`md:py-28` = 112px entre 768-1023px,
+ * `lg:py-40` = 160px a partir de 1024px, o MESMO valor de sempre) —
+ * "nao reduza o desktop" (pedido explicito desta etapa) e satisfeito
+ * preservando literalmente o breakpoint `lg` original, mesmo com os dois
+ * tiers novos abaixo dele.
  */
 export function Section({
   variant = "base",
@@ -43,7 +55,7 @@ export function Section({
   return (
     <section
       className={cn(
-        "py-28 sm:py-36 lg:py-40",
+        "py-16 sm:py-20 md:py-28 lg:py-40",
         variantClasses[variant],
         className,
       )}

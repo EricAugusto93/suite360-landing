@@ -20,12 +20,22 @@ export function OptimizationShowcase() {
 
   return (
     <>
+      {/*
+        ETAPA 3 — `mt-16`/`sm:mt-20` fixo somava, junto com o `py-28` (agora
+        `py-16 sm:py-20 md:py-28 lg:py-40` de Section.tsx) do Processo e da
+        Solucao, um vazio estrutural de 288px no mobile. Reduzido para
+        `mt-8`/`sm:mt-10` (32px/40px) abaixo de 768px; `md:mt-16` (768-
+        1023px) e `lg:mt-20` (1024px+, o MESMO valor original de sempre)
+        preservam o comportamento desktop exatamente como antes — o antigo
+        `sm:mt-20` nunca tinha um tier proprio de `lg`, entao repeti-lo
+        aqui como `lg:mt-20` e o que garante "nao reduza o desktop".
+      */}
       <ScrollReveal
         variant="fade-up"
         delay={0.1}
         direction="left"
         mobileDistance={28}
-        className="mt-16 flex w-full max-w-3xl flex-col items-center gap-4 text-center sm:mt-20"
+        className="mt-8 flex w-full max-w-3xl flex-col items-center gap-4 text-center sm:mt-10 md:mt-16 lg:mt-20"
       >
         <h3 className="text-h1 font-semibold text-balance">
           Otimização completa

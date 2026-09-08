@@ -311,19 +311,20 @@ export function ProblemSection() {
 
         {/*
           Cada card com seu proprio ScrollReveal (em vez de um unico
-          wrapper para a grade inteira) — cards alternando lado de entrada
-          no mobile. ETAPA 9 (secao 5): sequencia pedida e 01 direita, 02
-          esquerda, 03 direita, 04 esquerda, 05 direita — `index % 2 === 0
-          ? "right" : "left"` cobre exatamente essa alternancia (indices
-          pares = cards impares 01/03/05 = direita; indices impares =
-          cards pares 02/04 = esquerda). `delay={index * 0.08}` substitui o
-          atraso fixo (0.1 para todos) por um stagger real: o Bento se forma
-          em ordem (01→02→03→04→05), tanto no mobile (onde cada card ainda
-          entra como uma unidade so, faixa/icone/texto/visual juntos — so a
-          microvisualizacao interna tem sequencia propria, ver
-          ProblemVisuals.tsx) quanto no desktop (fade-up puro, sem lateral,
-          ja que `direction` so tem efeito <768px). Grid/spans/ordem
-          continuam identicos (ver comentario no array `problems` acima).
+          wrapper para a grade inteira) — cada card entra como uma unidade
+          so no mobile. ETAPA 10 (padronizacao do fade lateral): a
+          alternancia direita/esquerda por indice (`index % 2 === 0 ?
+          "right" : "left"`, pedida na ETAPA 9) foi substituida por
+          `direction="left"` fixo em todos os 5 cards — todas as caixas da
+          landing agora entram da esquerda para a direita no mobile, sem
+          excecao. `delay={index * 0.08}` preservado (stagger real: o Bento
+          se forma em ordem 01→02→03→04→05), tanto no mobile (onde cada
+          card ainda entra como uma unidade so, faixa/icone/texto/visual
+          juntos — so a microvisualizacao interna tem sequencia propria,
+          ver ProblemVisuals.tsx, intocado) quanto no desktop (fade-up
+          puro, sem lateral, ja que `direction` so tem efeito <768px).
+          Grid/spans/ordem continuam identicos (ver comentario no array
+          `problems` acima).
         */}
         <div className="relative z-10 mt-16 grid w-full grid-cols-1 gap-4 sm:mt-20 sm:grid-cols-2 lg:grid-cols-4">
           {problems.map(
@@ -364,7 +365,7 @@ export function ProblemSection() {
                   key={title}
                   variant="fade-up"
                   delay={index * 0.08}
-                  direction={index % 2 === 0 ? "right" : "left"}
+                  direction="left"
                   mobileDistance={28}
                   className={cn(
                     "group relative flex flex-col gap-6 overflow-hidden rounded-[22px] border p-6 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 lg:p-7",

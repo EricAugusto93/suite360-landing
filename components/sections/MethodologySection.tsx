@@ -109,11 +109,13 @@ function BarsIcon() {
  * entao se alinham sozinhos com qualquer tamanho de marcador por
  * breakpoint, sem calculo manual de posicao.
  *
- * ETAPA 5 (animacoes): a entrada de cada `<li>` (mobile lateral alternado
- * 01 direita/02 esquerda/03 direita/04 esquerda via `direction`, desktop
+ * ETAPA 5 (animacoes): a entrada de cada `<li>` (mobile lateral, desktop
  * fade-up discreto) continua vindo do MESMO `ScrollReveal` de sempre — so o
  * `delay` mudou, para o card entrar depois da sequencia marcador->conector
- * (ver `MethodologyMotion.tsx`). O trilho estatico da linha permanece
+ * (ver `MethodologyMotion.tsx`). ETAPA 10 (padronizacao do fade lateral):
+ * a alternancia 01 direita/02 esquerda/03 direita/04 esquerda foi
+ * substituida por `direction="left"` fixo nos 4 itens — mesma direcao de
+ * todas as outras caixas da landing agora. O trilho estatico da linha permanece
  * intacto; uma camada animada (`AnimatedTimelineSegment`) cresce por cima
  * dele quando a etapa entra em vista. O marcador virou `AnimatedMarker`
  * (Client Component em `MethodologyMotion.tsx`) — mesma aparencia final,
@@ -126,7 +128,15 @@ export function MethodologySection() {
   const total = STEPS.length;
 
   return (
-    <Section variant="elevated">
+    // ETAPA 5 — `overflow-hidden` adicionado (mesma razao documentada em
+    // ProcessSection.tsx): o painel inteiro desta secao usa
+    // `direction="left"` no seu proprio `ScrollReveal` (ja existia antes,
+    // mas nunca deslocava nada de verdade por causa do bug corrigido
+    // nesta etapa) — o `overflow-hidden` que ja existe no `className` do
+    // PROPRIO painel so clipa os FILHOS dele (os itens da timeline,
+    // protegidos), nao o deslocamento do painel em si, que e filho direto
+    // desta `<Section>`.
+    <Section variant="elevated" className="overflow-hidden">
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
@@ -360,7 +370,7 @@ export function MethodologySection() {
                   key={step.title}
                   as="li"
                   variant="fade-up"
-                  direction={index % 2 === 0 ? "right" : "left"}
+                  direction="left"
                   mobileDistance={24}
                   delay={0.6 + index * 0.05}
                   amount={0.2}

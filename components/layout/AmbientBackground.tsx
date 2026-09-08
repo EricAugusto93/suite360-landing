@@ -23,6 +23,25 @@
  * distribuirem proporcionalmente por QUALQUER altura final de pagina —
  * peca central para funcionar igual em mobile (secoes empilhadas, pagina
  * bem mais alta) e desktop, sem duplicar valores por breakpoint.
+ *
+ * ETAPA 2 (auditoria "fundo mobile, espacamentos e fade lateral", secao 1):
+ * dos 7 blobs originais so 1 era lilas (~72%), deixando quase toda a
+ * pagina sem nenhuma presenca roxa. 3 novos blobs (`md:hidden` — SO
+ * abaixo de 768px, sem JS/listener, o proprio Tailwind resolve) preenchem
+ * ~24%/~33.5%/~66% da rolagem (recalibrados na ETAPA 3 apos a reducao do
+ * padding vertical das secoes ter encolhido a altura total da pagina —
+ * ver comentarios nos blobs A/B/C abaixo), reutilizando exatamente o MESMO token
+ * (`--s360-ambient-purple`) e as MESMAS classes de drift/keyframe ja
+ * existentes — nenhuma cor, keyframe ou valor de blob original mudou. O
+ * alpha do token lilas (0.12) ja e mais baixo que o do azul principal
+ * (0.16), entao reaproveita-lo tal como esta ja garante "menos intenso que
+ * o azul" sem precisar de nenhum ajuste artificial de opacidade (que nem
+ * funcionaria aqui: um `opacity` estatico inline seria sobrescrito pela
+ * propria animacao `infinite`, que already controla `opacity` do 0% ao
+ * 100%) — a variacao entre os 3 novos halos fica so em tamanho (dentro da
+ * faixa 85-125vw / 38-58vh pedida, mais pra baixo da faixa que os grandes
+ * blobs azuis) e no ponto de corte do gradiente (68-74%, mesma variacao ja
+ * usada nos blobs originais), nunca no token.
  */
 export function AmbientBackground() {
   return (
@@ -50,6 +69,27 @@ export function AmbientBackground() {
         }}
       />
 
+      {/*
+        ETAPA 2 — Halo lilas A, exclusivo mobile: entre Sinais de Alerta e o
+        inicio do Diagnostico, pelo lado esquerdo, discreto (menor dos 3
+        novos). `md:hidden` — nao existe em 768px+, desktop fica identico.
+        ETAPA 3 — `top` recalibrado de 22% para 24%: a reducao do padding
+        vertical (`Section.tsx`) encurtou a altura total da pagina, o que
+        desloca a posicao percentual real de toda transicao abaixo do
+        Hero. Recalculado via `getBoundingClientRect` apos as mudancas
+        (zona de exposicao real — inicio do fade da propria atmosfera do
+        Sinais de Alerta, ~86% da altura daquela secao, ate o topo do
+        Diagnostico — ficou em ~23.9%-26.5%, centro ~25.2%).
+      */}
+      <div
+        className="s360-ambient-blob s360-ambient-anim-a md:hidden absolute top-[24%] left-[-16%] h-[42vh] w-[100vw]"
+        style={{
+          background:
+            "radial-gradient(circle, var(--s360-ambient-purple) 0%, transparent 70%)",
+          animationDelay: "-5s",
+        }}
+      />
+
       {/* Metodologia / Processo — azul eletrico bem discreto, a esquerda. */}
       <div
         className="s360-ambient-blob s360-ambient-anim-c absolute top-[34%] left-[-10%] h-[55vh] w-[120vw] sm:h-[65vh] sm:w-[60vw]"
@@ -60,6 +100,34 @@ export function AmbientBackground() {
         }}
       />
 
+      {/*
+        ETAPA 2 — Halo lilas B, exclusivo mobile: iluminando a transicao
+        Diagnostico -> Metodologia, pelo lado direito, o maior dos 3 novos
+        halos. `top:33.5%` — validacao visual da Etapa 2 encontrou a
+        limitacao estrutural documentada abaixo (DiagnosticSection.tsx e o
+        painel de MethodologySection.tsx bloqueando o fundo global com
+        camadas locais opacas, sobrando so uma fresta estreita entre eles).
+        ETAPA 3 corrigiu justamente essa causa raiz para este arquivo (ver
+        mascara de fade adicionada a atmosfera externa do Diagnostico em
+        DiagnosticSection.tsx — nao mais opaca de ponta a ponta). Recalculo
+        pos-mudanca (fade inicia a ~90% da altura da propria secao do
+        Diagnostico, e a altura total da pagina encolheu com a reducao do
+        padding): a janela efetivamente exposta ficou mais generosa
+        (~34.1%-35.5%, centro ~34.8%), e o `top:33.5%` ja calculado antes
+        continua caindo corretamente no centro dela — nenhum ajuste de
+        posicao foi necessario aqui, mas o RESULTADO visual deve ser
+        sensivelmente melhor agora que a atmosfera do Diagnostico nao
+        bloqueia mais o fundo global nas suas proprias bordas.
+      */}
+      <div
+        className="s360-ambient-blob s360-ambient-anim-c md:hidden absolute top-[33.5%] right-[-17%] h-[52vh] w-[118vw]"
+        style={{
+          background:
+            "radial-gradient(circle, var(--s360-ambient-purple) 0%, transparent 74%)",
+          animationDelay: "-8s",
+        }}
+      />
+
       {/* Transicao para a Solucao — azul-marinho central, mistura organica. */}
       <div
         className="s360-ambient-blob s360-ambient-anim-a absolute top-[52%] left-1/2 h-[50vh] w-[130vw] -translate-x-1/2 sm:h-[60vh] sm:w-[70vw]"
@@ -67,6 +135,31 @@ export function AmbientBackground() {
           background:
             "radial-gradient(circle, var(--s360-ambient-navy) 0%, transparent 72%)",
           animationDelay: "-13s",
+        }}
+      />
+
+      {/*
+        ETAPA 2 — Halo lilas C, exclusivo mobile: entre Processo e Solucao,
+        pelo lado esquerdo, reduzindo a sensacao de fundo completamente
+        preto ali. Nem ProcessSection.tsx nem o inicio de SolutionSection.tsx
+        tem camada de atmosfera local opaca (so o painel "Janela de analise"
+        mais abaixo, `OptimizationPreview.tsx`, tem fundo solido) — a
+        janela exposta ao fundo global aqui e generosa, bem mais tolerante
+        que a do halo B.
+        ETAPA 3 — `top` recalibrado de 65% para 66%: com a reducao do
+        `mt-16`/`py-28` (Section.tsx/OptimizationShowcase.tsx), a altura
+        total da pagina encolheu e a janela real (Processo -> inicio do
+        painel opaco da Otimizacao) recalculada via `getBoundingClientRect`
+        ficou em ~65.3%-68.2%, centro ~66.8% — pequeno ajuste para
+        continuar centralizado no vazio real, nunca dentro da timeline do
+        Processo nem atras do painel opaco.
+      */}
+      <div
+        className="s360-ambient-blob s360-ambient-anim-b md:hidden absolute top-[66%] left-[-13%] h-[40vh] w-[90vw]"
+        style={{
+          background:
+            "radial-gradient(circle, var(--s360-ambient-purple) 0%, transparent 68%)",
+          animationDelay: "-4s",
         }}
       />
 

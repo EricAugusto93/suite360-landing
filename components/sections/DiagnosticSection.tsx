@@ -157,8 +157,25 @@ export function DiagnosticSection() {
         preto, radial azul concentrado no topo direito, grid tecnico
         localizado (mascarado) e um acento violeta discreto — mesmo
         vocabulario visual da Metodologia, construido aqui do zero.
+
+        ETAPA 3 — a auditoria encontrou esta camada (a "base" em especifico,
+        `linear-gradient` OPACO sem nenhuma mascara) cobrindo TODA a secao
+        de ponta a ponta, bloqueando o fundo infinito global (e o halo
+        lilas B da Etapa 2) inteiro sempre que a secao existe. Mascara
+        vertical suave aplicada SO nesta camada externa (nunca no console/
+        wizard/texto — ver `DiagnosticWizard`/`ScrollReveal` abaixo,
+        intocados), so abaixo de `md`: transparente nas bordas superior/
+        inferior (0%/100%), totalmente visivel no meio (10%-90%) — deixa o
+        fundo global "vazar" gradualmente nas transicoes com Sinais de
+        Alerta (acima) e Metodologia (abaixo), sem criar uma linha
+        horizontal. `md:[mask-image:none]` restaura o comportamento
+        original (sem mascara) a partir de 768px — desktop/tablet largo
+        permanecem pixel-a-pixel identicos.
       */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] md:[mask-image:none] md:[-webkit-mask-image:none]"
+      >
         {/* 1. Base — gradiente vertical quase preto. */}
         <div
           className="absolute inset-0"
@@ -245,11 +262,21 @@ export function DiagnosticSection() {
           do antigo `bg-card`/`border-border`/`rounded-xl` chapados.
           `isolate` contem o `-z-10` da atmosfera interna dentro do proprio
           console, sem vazar para o resto da secao.
+
+          ETAPA 10 (padronizacao do fade lateral) — `direction` trocado de
+          "right" para "left": o console (unica "caixa" desta secao — o
+          painel inteiro continua entrando como uma unica peca no mobile,
+          nao campo a campo) agora entra da esquerda para a direita, como
+          todas as outras caixas da landing. O cabecalho logo acima
+          (`ScrollReveal` com a linha editorial/titulo/descricao) nao foi
+          alterado — pedido explicito desta etapa era so o "ScrollReveal
+          responsavel pela entrada do painel/console completo", entao o
+          cabecalho mantem seu `direction="right"` original.
         */}
         <ScrollReveal
           variant="fade-up"
           delay={0.1}
-          direction="right"
+          direction="left"
           mobileDistance={32}
           className="relative isolate z-10 w-full max-w-[1120px] overflow-hidden rounded-[26px] border border-[rgba(103,140,255,0.16)] bg-[linear-gradient(165deg,rgba(13,20,34,0.97)_0%,rgba(8,11,18,0.98)_55%,rgba(6,8,13,0.99)_100%)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),inset_1px_0_0_0_rgba(103,140,255,0.1),0_30px_70px_-28px_rgba(0,0,0,0.65)] transition-colors duration-300 hover:border-primary/30"
         >

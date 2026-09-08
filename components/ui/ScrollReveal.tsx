@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import {
   defaultTransition,
@@ -76,6 +77,35 @@ type ScrollRevealProps = {
  * ele continuam vindo de `motionVariants[variant]` (o mesmo de sempre)
  * ate o hook `useIsMobileViewport` confirmar, DEPOIS de montado, que a
  * tela e mobile — so a partir dai a variante lateral entra em jogo.
+ *
+ * ETAPA 5 (causa raiz real, investigada com instrumentacao direta de
+ * render, nao so leitura de codigo): mesmo depois de `useIsMobileViewport`
+ * passar a confirmar `true` corretamente logo apos o mount (auditado via
+ * fiber/console: o estado React realmente atualiza), o elemento continuava
+ * renderizando com a pose "hidden" DESKTOP (`y:16`, sem `x`) em vez da
+ * mobile lateral. Causa: o Motion calcula a pose `initial="hidden"` uma
+ * UNICA vez, no primeiro render em que o elemento existe — trocar o objeto
+ * `variants` num render POSTERIOR (aqui, quando `isMobile` passa de
+ * `false` para `true`) nao faz o Motion reaplicar essa pose enquanto o
+ * elemento ainda esta em repouso, esperando `whileInView` disparar. Nao e
+ * um bug do hook (a API do navegador e o estado React sempre estiveram
+ * certos) — e um comportamento real do Motion com poses "hidden" ainda
+ * nao iniciadas.
+ *
+ * Correcao minima: `revealKey` forca UMA UNICA remontagem do `MotionTag`
+ * (via prop `key`), exatamente no momento em que `isMobile` e confirmado
+ * pela primeira vez apos o mount — o elemento reaparece como instancia
+ * NOVA, que ja calcula `effectiveVariants` com o valor correto desde o
+ * inicio da propria existencia (o `useState`/`useEffect` que gera essa
+ * confirmacao roda no MESMO lote de efeitos que a correcao do
+ * `useIsMobileViewport`, entao chegam juntos no mesmo re-render). So
+ * acontece UMA vez (nunca de novo depois) e so quando `direction` esta
+ * definido (as demais instancias de `ScrollReveal`, que nunca dependem de
+ * `isMobile`, nao remontam a toa) — isso preserva elementos ja revelados
+ * ao cruzar 767/768px depois (a chave nao muda de novo, entao eles nunca
+ * desaparecem), ao custo de nao re-corrigir a pose "hidden" de um elemento
+ * AINDA nao revelado numa SEGUNDA travessia do breakpoint (limitacao
+ * residual documentada no relatorio desta etapa).
  */
 export function ScrollReveal({
   children,
@@ -100,6 +130,19 @@ export function ScrollReveal({
   // `motionVariants[variant]`, igual ao servidor. Nenhum mismatch possivel.
   const useMobileReveal = isMobile && direction !== undefined;
 
+  // Ver comentario grande acima da funcao ("ETAPA 5") — remonta o
+  // `MotionTag` exatamente uma vez, no momento em que `isMobile` fica
+  // confirmado, so quando `direction` existe (unico caso em que a pose
+  // "hidden" realmente depende do valor de `isMobile`).
+  const hasConfirmedViewportRef = useRef(false);
+  const [viewportConfirmed, setViewportConfirmed] = useState(false);
+  useEffect(() => {
+    if (hasConfirmedViewportRef.current) return;
+    hasConfirmedViewportRef.current = true;
+    setViewportConfirmed(true);
+  }, []);
+  const revealKey = direction !== undefined ? (viewportConfirmed ? "client" : "ssr") : undefined;
+
   const effectiveVariants = useMobileReveal
     ? mobileDirectionVariants(direction, mobileDistance)
     : motionVariants[variant];
@@ -122,6 +165,7 @@ export function ScrollReveal({
 
   return (
     <MotionTag
+      key={revealKey}
       className={cn("motion-reveal", className)}
       initial="hidden"
       variants={effectiveVariants}

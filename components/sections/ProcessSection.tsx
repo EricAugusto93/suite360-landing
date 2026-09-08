@@ -47,7 +47,16 @@ const PROCESS_STEPS: ProcessStep[] = [
 
 export function ProcessSection() {
   return (
-    <Section variant="base">
+    // ETAPA 5 — `overflow-hidden` adicionado: a correcao real do fade
+    // lateral mobile (ver lib/useIsMobileViewport.ts/ScrollReveal.tsx)
+    // fez os `ScrollReveal` desta secao (que ja usavam `direction` antes,
+    // mas nunca de fato deslocavam nada por causa do bug) passarem a
+    // deslocar conteudo de verdade — sem uma ancestral com `overflow-
+    // hidden` (ProblemSection/DiagnosticSection ja tinham; esta nao
+    // tinha), o deslocamento lateral podia extrapolar a viewport durante
+    // o estado oculto/em transicao, causando um overflow horizontal real
+    // (~4px, confirmado via `scrollWidth` antes desta correcao).
+    <Section variant="base" className="overflow-hidden">
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
@@ -67,6 +76,14 @@ export function ProcessSection() {
           </p>
         </ScrollReveal>
 
+        {/*
+          ETAPA 10 (padronizacao do fade lateral) — `direction` trocado de
+          "right" para "left" nos 5 itens da timeline: entram da esquerda
+          para a direita agora, como todas as outras caixas da landing
+          (antes entravam pela direita). O cabecalho da secao logo acima
+          mantem seu `direction="right"` original — fora do escopo desta
+          etapa (que pediu explicitamente so os "cinco itens da timeline").
+        */}
         <ol className="mt-14 flex w-full max-w-2xl list-none flex-col sm:mt-20">
           {PROCESS_STEPS.map((step, index) => (
             <ScrollReveal
@@ -75,7 +92,7 @@ export function ProcessSection() {
               variant="fade-up"
               delay={0.08 + index * 0.06}
               amount={0.4}
-              direction="right"
+              direction="left"
               mobileDistance={24}
               className="relative flex gap-5 pb-8 last:pb-0 sm:gap-7 sm:pb-10"
             >

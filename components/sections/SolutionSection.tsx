@@ -17,7 +17,12 @@ import { ReportShowcase } from "./ReportShowcase";
  */
 export function SolutionSection() {
   return (
-    <Section variant="alt">
+    // ETAPA 5 — `overflow-hidden` adicionado (mesma razao documentada em
+    // ProcessSection.tsx): a correcao real do fade lateral mobile fez os
+    // `ScrollReveal` desta secao passarem a deslocar conteudo de verdade;
+    // sem ancestral com `overflow-hidden`, isso podia extrapolar a
+    // viewport durante o estado oculto/em transicao.
+    <Section variant="alt" className="overflow-hidden">
       <Container className="flex flex-col items-center">
         {/* 1 — Otimização completa (elemento principal, tratamento "showcase"
             grande e empilhado — pedido do usuario, inspirado numa
@@ -91,10 +96,17 @@ export function SolutionSection() {
             </Card>
           </ScrollReveal>
 
+          {/*
+            ETAPA 10 (padronizacao do fade lateral) — `direction` trocado
+            de "right" para "left": card Manual entra da esquerda para a
+            direita agora, igual ao card Relatório ao lado (que ja usava
+            "left" desde antes) — os dois cards desta secao usam a mesma
+            direcao, sem alternancia.
+          */}
           <ScrollReveal
             variant="fade-up"
             delay={0.3}
-            direction="right"
+            direction="left"
             mobileDistance={28}
           >
             <Card className="flex flex-col gap-4 p-6">
