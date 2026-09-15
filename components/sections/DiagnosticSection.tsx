@@ -165,23 +165,54 @@ export function DiagnosticSection() {
         vertical suave aplicada SO nesta camada externa (nunca no console/
         wizard/texto — ver `DiagnosticWizard`/`ScrollReveal` abaixo,
         intocados), so abaixo de `md`: transparente nas bordas superior/
-        inferior (0%/100%), totalmente visivel no meio (10%-90%) — deixa o
-        fundo global "vazar" gradualmente nas transicoes com Sinais de
-        Alerta (acima) e Metodologia (abaixo), sem criar uma linha
-        horizontal. `md:[mask-image:none]` restaura o comportamento
-        original (sem mascara) a partir de 768px — desktop/tablet largo
-        permanecem pixel-a-pixel identicos.
+        inferior, totalmente visivel no meio — deixa o fundo global "vazar"
+        gradualmente nas transicoes com Sinais de Alerta (acima) e
+        Metodologia (abaixo), sem criar uma linha horizontal.
+        `md:[mask-image:none]` restaura o comportamento original (sem
+        mascara) a partir de 768px — desktop/tablet largo permanecem
+        pixel-a-pixel identicos.
+
+        CORRECAO CONJUNTA MOBILE (10%/90% -> 16%/78%) + AJUSTE MOBILE (16%/78%
+        -> 8%/86%) — mascara alargada. CORRECAO FINAL MOBILE (recuperar o
+        preto): a camada "base" (sub-camada 1) tinha ficado transparente
+        demais (0.35-0.55) — o campo global e o reforco lilas local (1b)
+        estavam se somando sobre ela e criando um bloco roxo solido em vez
+        de uma luz que nasce num canto e apaga no preto. Alpha da base
+        RESTAURADO parcialmente (0.35-0.55 -> 0.55-0.75) — ainda mais
+        transparente que o original opaco (que so o desktop usa, versao
+        `md:block` abaixo, intocada), mas com preto real predominando de
+        novo. A sub-camada 1b deixou de ser uma FAIXA HORIZONTAL cobrindo
+        70% da altura da secao (causa direta do "bloco roxo solido" citado
+        pelo cliente) e virou um CANTO inferior-esquerdo, do mesmo tamanho/
+        alpha dos halos locais usados nas outras secoes desta correcao —
+        luz que nasce no canto e dissolve no preto ao redor, nao mais o
+        tom-base da secao inteira.
       */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] md:[mask-image:none] md:[-webkit-mask-image:none]"
+        className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,transparent_0%,black_8%,black_86%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_8%,black_86%,transparent_100%)] md:[mask-image:none] md:[-webkit-mask-image:none]"
       >
-        {/* 1. Base — gradiente vertical quase preto. */}
+        {/* 1. Base — versao mobile (alpha reduzido, mesmos tons) e versao desktop (original, opaca, inalterada). */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 md:hidden"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(10,13,20,0.55) 0%, rgba(7,9,14,0.65) 45%, rgba(10,15,26,0.75) 78%, rgba(7,9,14,0.5) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 hidden md:block"
           style={{
             background:
               "linear-gradient(180deg, #0a0d14 0%, #07090e 45%, #0a0f1a 78%, #07090e 100%)",
+          }}
+        />
+
+        {/* 1b. Canto lilas inferior-esquerdo (mobile only) — luz localizada, nao mais uma faixa cobrindo a secao inteira. */}
+        <div
+          className="absolute bottom-0 left-0 h-64 w-64 -translate-x-1/4 translate-y-1/4 rounded-full blur-3xl md:hidden"
+          style={{
+            background: "radial-gradient(circle, rgba(139,92,246,0.22), transparent 70%)",
           }}
         />
 
@@ -212,6 +243,13 @@ export function DiagnosticSection() {
             background: "radial-gradient(circle, rgba(139,92,246,0.1), transparent 70%)",
           }}
         />
+
+        {/* CORRECAO FINAL MOBILE — o canto lilas inferior-esquerdo desta
+            atmosfera externa agora vive so na sub-camada 1b (acima, perto
+            da base do gradiente) — havia DOIS campos lilas praticamente no
+            mesmo canto aqui (este e o 1b), somando alpha e virando parte do
+            "bloco roxo solido" que o cliente pediu para desfazer. Removido
+            o duplicado; 1b sozinho ja entrega "lilas no canto esquerdo". */}
 
         {/* 5. Circuito decorativo externo — atras do cabecalho, sem interferir no painel. */}
         <DiagnosticCircuit />
@@ -310,6 +348,22 @@ export function DiagnosticSection() {
               className="absolute right-8 bottom-0 h-40 w-40 translate-y-1/3 rounded-full opacity-60 blur-3xl"
               style={{
                 background: "radial-gradient(circle, rgba(139,92,246,0.12), transparent 70%)",
+              }}
+            />
+
+            {/* AJUSTE MOBILE — campo lilas do lado ESQUERDO do console,
+                opondo-se ao azul do lado direito. CORRECAO FINAL MOBILE
+                (recuperar o preto): tamanho/alpha reduzidos (h-64 w-64
+                alpha 0.3 -> h-48 w-48 alpha 0.2) — o console e uma area
+                pequena (largura do painel), o campo anterior praticamente
+                cobria a metade esquerda inteira dele; agora fica um canto
+                real, com preto/superficie do console ao redor. As opcoes
+                do wizard (DiagnosticWizard, superficies proprias) continuam
+                intocadas. */}
+            <div
+              className="absolute bottom-0 left-0 h-48 w-48 -translate-x-1/4 translate-y-1/4 rounded-full blur-3xl md:hidden"
+              style={{
+                background: "radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%)",
               }}
             />
             <ConsoleCircuit />

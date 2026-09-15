@@ -22,8 +22,36 @@ export function SolutionSection() {
     // `ScrollReveal` desta secao passarem a deslocar conteudo de verdade;
     // sem ancestral com `overflow-hidden`, isso podia extrapolar a
     // viewport durante o estado oculto/em transicao.
-    <Section variant="alt" className="overflow-hidden">
-      <Container className="flex flex-col items-center">
+    <Section variant="alt" className="relative isolate overflow-hidden">
+      {/*
+        AJUSTE MOBILE (correcao visual efetiva) — secao sem nenhuma camada
+        decorativa local antes. Camada `-z-10` ancorada A ESTA SECAO.
+
+        CORRECAO FINAL MOBILE (recuperar o preto) — havia DOIS campos lilas
+        nesta secao: este, grande (h-[26rem]=416px, alpha 0.34), cobrindo
+        praticamente a metade inferior inteira da secao, E um segundo
+        dedicado especificamente ao grid Relatorio/Manual (mais abaixo, no
+        proprio grid). Os dois se somavam exatamente onde o cliente pediu
+        para ter lilas "ao lado" dos cards — resultado: bloco solido, nao
+        luz localizada. Removido o campo lilas AQUI (nivel de secao); o
+        halo dedicado ao grid (ver mais abaixo) passa a ser a UNICA fonte
+        de lilas desta secao — mais preciso, sem duplicacao. So azul fica
+        no nivel da secao (Otimizacao/NFC, topo).
+      */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 md:hidden"
+      >
+        <div
+          className="absolute top-0 right-0 h-64 w-64 -translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"
+          style={{
+            background: "radial-gradient(circle, var(--s360-ambient-blue), transparent 70%)",
+            opacity: 0.65,
+          }}
+        />
+      </div>
+
+      <Container className="relative z-10 flex flex-col items-center">
         {/* 1 — Otimização completa (elemento principal, tratamento "showcase"
             grande e empilhado — pedido do usuario, inspirado numa
             composicao do framer.com: titulo grande em cima, visual grande
@@ -76,7 +104,34 @@ export function SolutionSection() {
           </p>
         </ScrollReveal>
 
-        <div className="mt-8 grid w-full max-w-2xl grid-cols-1 items-start gap-4 sm:grid-cols-2">
+        {/*
+          AJUSTE MOBILE — reforco dedicado, exclusivo mobile, so ao redor
+          deste grid (Relatorio/Manual) especificamente: `relative isolate`
+          proprio + halos azul (direita) e lilas (esquerda) ancorados a este
+          `<div>`, nao a secao inteira. CORRECAO FINAL MOBILE — apos remover
+          o halo lilas duplicado do nivel de secao (acima), este e agora a
+          UNICA fonte de lilas da secao; tamanho/alpha reduzidos (h-64 alpha
+          0.36 -> h-52 alpha 0.22) para ficar "luz no canto", nao um bloco
+          cobrindo o grid inteiro.
+        */}
+        <div className="relative isolate mt-8 grid w-full max-w-2xl grid-cols-1 items-start gap-4 sm:grid-cols-2">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-6 -z-10 md:hidden"
+          >
+            <div
+              className="absolute top-0 right-0 h-44 w-44 -translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"
+              style={{
+                background: "radial-gradient(circle, var(--s360-ambient-blue-soft), transparent 70%)",
+              }}
+            />
+            <div
+              className="absolute bottom-0 left-0 h-52 w-52 -translate-x-1/4 translate-y-1/4 rounded-full blur-3xl"
+              style={{
+                background: "radial-gradient(circle, rgba(139,92,246,0.22), transparent 70%)",
+              }}
+            />
+          </div>
           <ScrollReveal
             variant="fade-up"
             delay={0.3}

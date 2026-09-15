@@ -46,6 +46,15 @@ const variantClasses: Record<SectionVariant, string> = {
  * "nao reduza o desktop" (pedido explicito desta etapa) e satisfeito
  * preservando literalmente o breakpoint `lg` original, mesmo com os dois
  * tiers novos abaixo dele.
+ *
+ * CORRECAO CONJUNTA MOBILE — `py-16` (64px) reduzido para `py-12` (48px)
+ * abaixo de 640px: essa e a UNICA faixa alterada nesta correcao (`sm:py-20`/
+ * `md:py-28`/`lg:py-40` permanecem literalmente os mesmos valores de
+ * sempre). Como toda fronteira "comum" entre duas secoes soma o padding-
+ * bottom de uma com o padding-top da proxima, isso leva o espaco vazio
+ * naquelas fronteiras de 128px (64+64) para 96px (48+48) no mobile mais
+ * estreito — parte da reducao geral de rolagem ate a Metodologia pedida
+ * nesta etapa, sem depender de nenhuma mudanca especifica so daquela secao.
  */
 export function Section({
   variant = "base",
@@ -55,7 +64,7 @@ export function Section({
   return (
     <section
       className={cn(
-        "py-16 sm:py-20 md:py-28 lg:py-40",
+        "py-12 sm:py-20 md:py-28 lg:py-40",
         variantClasses[variant],
         className,
       )}

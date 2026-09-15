@@ -58,6 +58,14 @@ export function MethodologyVisual({
  * grid interno discreto, iluminacao radial) para as etapas lerem como parte
  * de UM sistema, nao quatro widgets desenhados sem relacao entre si.
  * Puramente estático — a moldura em si não anima, só o conteúdo dentro dela.
+ *
+ * CORRECAO CONJUNTA MOBILE — `min-h-[150px]` (a faixa SEM prefixo, que ate
+ * aqui valia para toda largura de tela) reduzido para `min-h-[128px]`
+ * (~15% menor), exclusivo de telas abaixo de 640px: `sm:min-h-[190px]` (ja
+ * existia) continua valendo a partir de 640px sem nenhuma mudanca, entao
+ * tablet/desktop permanecem identicos. `min-h` (nao `h`) preserva a garantia
+ * de nao cortar nada — se o conteudo de alguma composicao precisar de mais
+ * espaco que 128px, a moldura cresce normalmente para acomodar.
  */
 function VisualFrame({
   children,
@@ -70,7 +78,7 @@ function VisualFrame({
     <div
       aria-hidden="true"
       className={cn(
-        "relative min-h-[150px] w-full overflow-hidden rounded-[18px] border sm:min-h-[190px] lg:h-[200px]",
+        "relative min-h-[128px] w-full overflow-hidden rounded-[18px] border sm:min-h-[190px] lg:h-[200px]",
         highlighted ? "border-primary/45" : "border-[rgba(122,158,255,0.22)]",
       )}
       style={{
@@ -150,7 +158,7 @@ function ProfileStructureVisual({ highlighted }: { highlighted?: boolean }) {
   return (
     <motion.svg
       viewBox="0 0 220 150"
-      className="h-full max-h-[130px] w-full max-w-[210px]"
+      className="h-full max-h-[108px] w-full max-w-[175px] sm:max-h-[130px] sm:max-w-[210px]"
       aria-hidden="true"
       initial="hidden"
       {...rootTrigger}
@@ -260,7 +268,7 @@ function ContentVisual({ highlighted }: { highlighted?: boolean }) {
   return (
     <motion.div
       aria-hidden="true"
-      className="flex h-full max-h-[150px] w-full max-w-[220px] items-end justify-center gap-3"
+      className="flex h-full max-h-[125px] w-full max-w-[183px] items-end justify-center gap-3 sm:max-h-[150px] sm:max-w-[220px]"
       initial="hidden"
       {...rootTrigger}
     >
@@ -365,6 +373,14 @@ function ContentVisual({ highlighted }: { highlighted?: boolean }) {
  * ETAPA 5: o anel "desenha" via `pathLength` (0 → fração real já usada no
  * desenho estático), a estrela entra com escala suave logo depois, e as
  * barras crescem horizontalmente em sequência.
+ *
+ * CORRECAO CONJUNTA MOBILE — unica das 4 composicoes sem `max-h`/`max-w`
+ * reduzidos: seus elementos (anel `h-16 w-16`, barras `h-1.5`) ja usam
+ * tamanhos fixos em rem/px, nao um teto proporcional como as outras 3 —
+ * encolhe-los exigiria mudar o proprio desenho (nao so a moldura ao redor),
+ * o que a instrucao desta correcao pede explicitamente para nao fazer. A
+ * moldura (`VisualFrame`, `min-h` reduzido acima) ainda cresce normalmente
+ * para acomodar esta composicao sem cortar nada.
  */
 function ReputationVisual() {
   const id = useId();
@@ -490,7 +506,7 @@ function LocalPresenceVisual() {
   return (
     <motion.svg
       viewBox="0 0 160 160"
-      className="h-full max-h-[150px] w-full max-w-[150px]"
+      className="h-full max-h-[125px] w-full max-w-[125px] sm:max-h-[150px] sm:max-w-[150px]"
       aria-hidden="true"
       initial="hidden"
       {...rootTrigger}

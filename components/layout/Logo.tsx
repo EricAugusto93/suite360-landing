@@ -2,24 +2,30 @@ import Image from "next/image";
 import Link from "next/link";
 
 /**
- * Logo oficial — lockup completo "Suite360 Films" (+ "A nova
- * perspectiva."), sobre a textura em marmore preto da propria marca.
+ * Logo oficial — lockup completo "Suite360 Films" + "A nova perspectiva.",
+ * arquivo `suite360-wordmark.png` (840x387), gerado a partir do arquivo
+ * fonte enviado pelo usuario ("logo suite.png") em duas correcoes pontuais,
+ * ambas confirmadas explicitamente antes de aplicar:
  *
- * Corrige um problema real encontrado no arquivo alternativo so-wordmark
- * ("logo suite.png"): aquele arquivo tem o MESMO conteudo completo (Suite +
- * 360 + Films + tagline), mas foi exportado sobre fundo BRANCO — como o
- * "360 Films"/tagline sao desenhados em branco, ficam invisiveis sobre o
- * proprio fundo branco (defeito de exportacao do arquivo fonte, nao algo
- * corrigivel via crop/transparencia: nao ha como distinguir "texto branco"
- * de "fundo branco" depois de exportados com a mesma cor). O arquivo em
- * marmore usado aqui e a mesma arte, exportada corretamente (fundo escuro
- * de proposito), entao TODO o conteudo (Suite/360/Films/tagline) fica
- * visivel — por isso e "a imagem original" pedida, sem nenhum pixel do
- * desenho alterado ou recolorido.
+ * 1. O arquivo fonte tinha um retangulo branco OPACO atras so da palavra
+ *    "Suite" (confirmado pixel a pixel — o resto, "360"/"Films"/tagline/
+ *    bordas, ja era transparente de verdade). Removido via un-matte contra
+ *    branco (luminancia -> alpha, preservando a anti-serrilhagem original)
+ *    numa regiao identificada por flood-fill (o "blob" conectado da
+ *    palavra "Suite", comprovadamente separado do blob de "360"/"Films").
+ *    Nenhum pixel de "360"/"Films"/tagline foi tocado nessa etapa.
+ * 2. "Suite" era desenhado em preto solido — invisivel sobre o fundo do
+ *    header (`--s360-background: #050505`, quase preto puro). Recolorido
+ *    para branco (mesmo tom de "360"/"Films"/tagline), mantendo a mesma
+ *    cobertura/anti-serrilhagem calculada no passo 1 — so a cor da tinta
+ *    mudou, nenhuma letra foi redesenhada, redimensionada ou recortada.
  *
- * Fundo ja escuro por natureza (a propria textura em marmore) — funciona
- * direto sobre o Header/Footer, sem precisar do "chip" claro (esse chip so
- * fazia sentido para a versao wordmark, com texto preto).
+ * Depois disso, a imagem foi cortada (crop) so no espaco vazio/transparente
+ * ao redor de todo o conteudo visivel (nenhum pixel de desenho removido) —
+ * necessario para o `next/image` calcular a proporcao real do lockup
+ * (840x387, bem mais largo que alto) em vez de um quadrado com margem
+ * vazia. `w-auto` + altura fixa preserva essa proporcao original em
+ * qualquer tamanho de tela.
  */
 export function Logo() {
   return (
@@ -28,12 +34,12 @@ export function Logo() {
       className="focus-visible:ring-primary focus-visible:ring-offset-background inline-flex w-fit shrink-0 items-center self-start rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     >
       <Image
-        src="/brand/suite360-logo.png"
-        alt="Suite360 Films"
-        width={875}
-        height={875}
+        src="/brand/suite360-wordmark-v2.png"
+        alt="Suite360 Films — A nova perspectiva."
+        width={840}
+        height={387}
         priority
-        className="h-11 w-11 rounded-lg sm:h-12 sm:w-12"
+        className="h-12 w-auto sm:h-14"
       />
     </Link>
   );

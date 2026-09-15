@@ -255,6 +255,17 @@ export function ProblemSection() {
           }}
         />
 
+        {/* 3b. AJUSTE MOBILE — campo lilas no canto OPOSTO ao azul (inferior
+            esquerdo). CORRECAO FINAL MOBILE (recuperar o preto) — tamanho/
+            alpha reduzidos (h-72 alpha 0.32 -> h-52 alpha 0.2), luz de
+            canto real, nao mais quase metade da secao. */}
+        <div
+          className="absolute bottom-0 left-0 h-52 w-52 -translate-x-1/4 translate-y-1/4 rounded-full blur-3xl md:hidden"
+          style={{
+            background: "radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%)",
+          }}
+        />
+
         {/* 4. Circuito decorativo externo — atras do cabecalho, sem tocar o titulo. */}
         <ProblemCircuit />
       </div>

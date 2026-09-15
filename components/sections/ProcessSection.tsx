@@ -56,8 +56,54 @@ export function ProcessSection() {
     // tinha), o deslocamento lateral podia extrapolar a viewport durante
     // o estado oculto/em transicao, causando um overflow horizontal real
     // (~4px, confirmado via `scrollWidth` antes desta correcao).
-    <Section variant="base" className="overflow-hidden">
-      <Container className="flex flex-col items-center">
+    <Section variant="base" className="relative isolate overflow-hidden">
+      {/*
+        AJUSTE MOBILE (correcao visual efetiva) — esta secao nao tinha
+        NENHUMA camada decorativa local antes; dependia inteiramente do
+        campo continuo global. Camada `-z-10` propria, ancorada A ESTA
+        SECAO (nao a altura total da pagina) — o halo acompanha exatamente
+        esta regiao de conteudo. Os cards (`bg-card`, opaco) continuam com
+        a mesma superficie de sempre — o lilas aparece ENTRE/AO REDOR
+        deles, nunca "atraves" do card.
+
+        CORRECAO FINAL MOBILE (recuperar o preto) — a versao anterior tinha
+        DOIS campos lilas grandes (h-80 e h-96, alpha 0.32/0.36) cobrindo o
+        lado esquerdo do topo ao rodape da secao inteira, sem sobrar preto
+        real entre os cards 03/04/05 pedidos como prioridade. Reduzido a UM
+        unico campo lilas, menor (h-64), alpha mais baixo (0.32 -> 0.2),
+        centralizado na altura media da timeline (onde ficam os cards
+        03/04/05) — luz que nasce a esquerda e dissolve no preto acima/
+        abaixo dela, com os cards 01/02 (topo) e boa parte do card 05
+        (fim) voltando a ficar sobre fundo predominantemente preto.
+      */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 md:hidden"
+      >
+        <div
+          className="absolute top-0 right-0 h-64 w-64 -translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"
+          style={{
+            background: "radial-gradient(circle, var(--s360-ambient-blue), transparent 70%)",
+            opacity: 0.7,
+          }}
+        />
+        {/* Reposicionado (42% -> 62%) e a TRANSLACAO corrigida: usava
+            `-translate-x-1/3 -translate-y-1/2` (deslocamento de 1/3 e 1/2
+            do proprio tamanho), bem mais agressivo que o padrao de "canto"
+            usado no resto do projeto (`-translate-x-1/4`, ver o azul logo
+            acima) — isso empurrava a MAIOR parte do circulo para fora da
+            viewport em 390px, sobrando so a borda mais fraca do gradiente
+            radial visivel, quase imperceptivel. Corrigido para 1/4 (mesmo
+            padrao), mantendo mais do nucleo do gradiente dentro da tela. */}
+        <div
+          className="absolute top-[62%] left-0 h-80 w-80 -translate-x-1/4 -translate-y-1/2 rounded-full blur-3xl"
+          style={{
+            background: "radial-gradient(circle, rgba(139,92,246,0.32), transparent 70%)",
+          }}
+        />
+      </div>
+
+      <Container className="relative z-10 flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
           direction="right"

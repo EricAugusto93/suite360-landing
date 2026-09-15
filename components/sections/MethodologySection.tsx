@@ -142,7 +142,7 @@ export function MethodologySection() {
           variant="fade-up"
           direction="left"
           mobileDistance={32}
-          className="border-border relative isolate w-full overflow-hidden rounded-xl border px-4 py-10 sm:px-8 sm:py-12 lg:px-16 lg:py-16"
+          className="border-border relative isolate w-full overflow-hidden rounded-xl border px-4 py-8 sm:px-8 sm:py-12 lg:px-16 lg:py-16"
         >
           {/*
             Atmosfera tecnologica e profundidade do painel (ETAPA 4B) — uma
@@ -188,9 +188,34 @@ export function MethodologySection() {
             {/* 1. Base do painel — substitui o antigo `bg-card` chapado por
                 um gradiente vertical escuro (quase preto no centro, com uma
                 pequena retomada azul-marinho na altura em que a timeline
-                comeca). */}
+                comeca).
+
+                CORRECAO CONJUNTA MOBILE — versao mobile com alpha reduzido
+                nos MESMOS tons (mesmos stops de cor, so com transparencia
+                acrescentada) no lugar do gradiente opaco original, para que
+                o campo continuo global (AmbientBackground.tsx) e o reforco
+                azul/lilas abaixo (sub-camadas 3b/7) apareçam atraves do
+                painel. A versao `hidden md:block` e o gradiente ORIGINAL,
+                inalterado — desktop/tablet largo continuam pixel-a-pixel
+                identicos.
+
+                AJUSTE MOBILE (fundo mais visivel) — alpha reduzido para
+                0.22-0.65. CORRECAO FINAL MOBILE (recuperar o preto,
+                "reduzir o preenchimento roxo do painel; manter o navy
+                escuro como base") — restaurado parcialmente para 0.42-0.8:
+                o painel precisa voltar a ler como navy/preto profundo por
+                padrao, com azul/lilas SO nas bordas/cantos (sub-camadas
+                3/7/8 abaixo, agora bem menores) — nao mais um painel
+                inteiro tingido de roxo. */}
             <div
-              className="absolute inset-0"
+              className="absolute inset-0 md:hidden"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(13,17,26,0.42) 0%, rgba(10,13,20,0.58) 14%, rgba(7,9,14,0.75) 32%, rgba(13,26,46,0.8) 55%, rgba(10,13,20,0.55) 80%, rgba(7,9,14,0.38) 100%)",
+              }}
+            />
+            <div
+              className="absolute inset-0 hidden md:block"
               style={{
                 background:
                   "linear-gradient(180deg, #0d111a 0%, #0a0d14 16%, #07090e 40%, #0d1a2e 60%, #0a0d14 82%, #07090e 100%)",
@@ -286,6 +311,38 @@ export function MethodologySection() {
                 animation: "s360-mv-breathe-b 13s ease-in-out infinite",
               }}
             />
+
+            {/* 7. CORRECAO CONJUNTA MOBILE + AJUSTE MOBILE — faixa lilas larga
+                perto da base do painel (mobile only), area ampliada (40% ->
+                55% da altura do painel) e alpha exclusivo mobile bem mais
+                alto que o token direto de 0.12 — mesmos componentes RGB do
+                token `--s360-ambient-purple`, que continua com seu alpha
+                original em qualquer outro uso (desktop, os 3 halos
+                animados abaixo, etc).
+
+                CORRECAO FINAL MOBILE (recuperar o preto, "luz azul e lilas
+                apenas nas bordas/cantos") — as sub-camadas 7 e 8 eram
+                FAIXAS HORIZONTAIS cobrindo 55% e 45% da altura do painel
+                (`inset-x-0`, largura total) — soma-las ao acento da
+                sub-camada 6 e ao campo global e o que criava o "painel
+                inteiro tingido de roxo" citado pelo cliente. Convertidas em
+                CANTOS reais (circulos pequenos, canto inferior-esquerdo e
+                canto superior-esquerdo), do mesmo tamanho/alpha usado nos
+                cantos das outras secoes desta correcao — luz que nasce no
+                canto e apaga no navy escuro ao redor, nao mais o tom-base
+                do painel inteiro. */}
+            <div
+              className="absolute bottom-0 left-0 h-56 w-56 -translate-x-1/4 translate-y-1/4 rounded-full blur-3xl md:hidden"
+              style={{
+                background: "radial-gradient(circle, rgba(139,92,246,0.22), transparent 70%)",
+              }}
+            />
+            <div
+              className="absolute top-0 left-0 h-48 w-48 -translate-x-1/4 -translate-y-1/4 rounded-full blur-3xl md:hidden"
+              style={{
+                background: "radial-gradient(circle, rgba(139,92,246,0.16), transparent 70%)",
+              }}
+            />
           </div>
 
           {/*
@@ -366,6 +423,21 @@ export function MethodologySection() {
               const number = String(index + 1).padStart(2, "0");
 
               return (
+                // CORRECAO CONJUNTA MOBILE — `mobileDelay` (prop ja existente
+                // em ScrollReveal, so nao usada aqui antes) desacopla o
+                // atraso mobile do desktop sem tocar ScrollReveal.tsx: no
+                // mobile a sequencia cai de 0.6-0.75s para 0.2-0.35s (ainda
+                // preserva a ordem linha->marcador->conector->card entre os
+                // 4 itens, so mais rapida), desktop mantem `delay` original
+                // inalterado. `pb-6` -> `pb-4` (so mobile) reduz o espaco
+                // entre etapas da timeline; a linha vertical (`AnimatedTimelineSegment`,
+                // abaixo) continua indo do fim do marcador ate `bottom-0` do
+                // proprio `<li>`, entao permanece continua com o novo padding
+                // menor, sem gap. `amount` NAO foi alterado: `ScrollReveal.tsx`
+                // fixa esse valor em 0.2 para revelacoes mobile com `direction`
+                // (ignora a prop `amount` recebida de fora nesse caso) — reduzi-lo
+                // exigiria editar um arquivo fora do escopo autorizado desta
+                // correcao, entao foi deixado como estava (ver relatorio).
                 <ScrollReveal
                   key={step.title}
                   as="li"
@@ -373,8 +445,9 @@ export function MethodologySection() {
                   direction="left"
                   mobileDistance={24}
                   delay={0.6 + index * 0.05}
+                  mobileDelay={0.2 + index * 0.05}
                   amount={0.2}
-                  className="relative grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-2 pb-6 last:pb-0 sm:gap-x-4 sm:pb-8 lg:gap-x-6 lg:pb-11"
+                  className="relative grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-2 pb-4 last:pb-0 sm:gap-x-4 sm:pb-8 lg:gap-x-6 lg:pb-11"
                 >
                   {/*
                     Linha vertical continua — construida como um segmento

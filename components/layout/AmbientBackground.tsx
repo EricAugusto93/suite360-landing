@@ -49,6 +49,48 @@ export function AmbientBackground() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
+      {/*
+        CORRECAO FINAL MOBILE (recuperar o preto) — a versao anterior
+        ("AJUSTE MOBILE") usava 10 campos GIGANTES (38-46% de altura, 100%
+        de largura, centros a so 10% de distancia) que se sobrepunham em
+        28-36 pontos percentuais uns aos outros — e cada secao ainda ganhou
+        seu PROPRIO halo lilas local por cima disso. O resultado (correto,
+        confirmado pelo cliente) foi um bloco roxo solido cobrindo quase
+        toda a pagina, sem preto sobrando.
+
+        Esta camada global volta a ser um acompanhamento discreto, nao a
+        fonte principal de cor — os halos locais de cada secao (Process/
+        Solution/Diagnostic/Problem/SocialProof/FAQ, todos abaixo do -z-10
+        de cada arquivo) agora carregam a responsabilidade principal de
+        mostrar azul/lilas onde a instrucao pede, com intervalos pretos
+        reais entre eles. Aqui: 7 campos MENORES (10-14% de altura, 55-65%
+        de largura, nao mais 100%), com espacamento de 16% entre centros —
+        como a meia-altura de cada campo fica em ~5-7%, sobra ~6-9 pontos
+        percentuais de preto real entre um campo e o proximo (nada de
+        sobreposicao). 4 azuis contra 3 lilas (proporcao pedida: azul mais
+        presente que lilas). Alpha do lilas reduzido de 0.27-0.29 para
+        0.16-0.18 (mesmos componentes RGB do token `--s360-ambient-purple`,
+        so a transparencia exclusiva deste bloco mobile mudou — o token em
+        si, usado pelos halos animados abaixo e pelo desktop, continua
+        0.12, intocado). Falloff mais curto (`transparent` 66-70%, era
+        84-90%) — os campos dissolvem no preto rapido, em vez de se
+        espalhar por uma area enorme.
+      */}
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{
+          backgroundImage: [
+            "radial-gradient(ellipse 62% 12% at 85% 4%, var(--s360-ambient-blue), transparent 68%)",
+            "radial-gradient(ellipse 58% 11% at 15% 20%, rgba(139,92,246,0.17), transparent 66%)",
+            "radial-gradient(ellipse 60% 12% at 82% 38%, var(--s360-ambient-blue-soft), transparent 68%)",
+            "radial-gradient(ellipse 58% 11% at 14% 54%, rgba(139,92,246,0.17), transparent 66%)",
+            "radial-gradient(ellipse 62% 12% at 85% 70%, var(--s360-ambient-blue), transparent 68%)",
+            "radial-gradient(ellipse 58% 11% at 16% 86%, rgba(139,92,246,0.17), transparent 66%)",
+            "radial-gradient(ellipse 58% 11% at 80% 98%, var(--s360-ambient-blue-soft), transparent 66%)",
+          ].join(", "),
+        }}
+      />
+
       {/* Regiao inicial (Hero) — preto azulado com presenca azul discreta. */}
       <div
         className="s360-ambient-blob s360-ambient-anim-a absolute -top-[12%] left-1/2 h-[55vh] w-[130vw] -translate-x-1/2 sm:h-[70vh] sm:w-[75vw]"

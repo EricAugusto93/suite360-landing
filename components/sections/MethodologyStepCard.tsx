@@ -62,6 +62,14 @@ type MethodologyStepCardProps = {
  * resultado imprevisivel (depende da ordem de geracao do CSS, nao da ordem
  * das classes no JSX). Renderizar o `<span>` diretamente evita esse risco e
  * mantem o mesmo resultado visual pretendido (formato pill, nao clicavel).
+ *
+ * CORRECAO CONJUNTA MOBILE — compactacao exclusiva mobile (<640px), parte
+ * da reducao de rolagem ate/dentro da Metodologia: padding externo
+ * `p-6`->`p-5` e o espacamento entre os blocos internos (icone/label/
+ * titulo/descricao/chips) `gap-6`->`gap-4`, alem da margem antes da
+ * microvisualizacao `mt-6`->`mt-4` — `sm:p-8`/`sm:gap-7`/`sm:mt-8` e toda a
+ * faixa `lg:*` (grid de 2 colunas, radius, borda, sombra, destaque do card
+ * 01) permanecem exatamente como estavam.
  */
 export function MethodologyStepCard({
   label,
@@ -77,7 +85,7 @@ export function MethodologyStepCard({
       initial="rest"
       whileHover="hover"
       className={cn(
-        "group relative flex w-full min-w-0 flex-col gap-6 overflow-hidden rounded-[24px] border p-6 transition-[border-color,box-shadow] duration-300 sm:gap-7 sm:p-8 lg:grid lg:min-h-[240px] lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)] lg:items-center lg:gap-10 lg:p-10",
+        "group relative flex w-full min-w-0 flex-col gap-4 overflow-hidden rounded-[24px] border p-5 transition-[border-color,box-shadow] duration-300 sm:gap-7 sm:p-8 lg:grid lg:min-h-[240px] lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)] lg:items-center lg:gap-10 lg:p-10",
         highlighted
           ? "border-primary/50 hover:border-primary/60"
           : "border-border-strong hover:border-primary/35",
@@ -140,7 +148,7 @@ export function MethodologyStepCard({
         </ul>
       </div>
 
-      <div className="relative mt-6 flex w-full items-center justify-center sm:mt-8 lg:mt-0 lg:justify-end">
+      <div className="relative mt-4 flex w-full items-center justify-center sm:mt-8 lg:mt-0 lg:justify-end">
         {visual}
       </div>
     </motion.div>

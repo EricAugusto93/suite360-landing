@@ -38,8 +38,33 @@ const FAQ_ITEMS: FaqItem[] = [
 
 export function FAQSection() {
   return (
-    <Section variant="alt">
-      <Container className="flex flex-col items-center">
+    <Section variant="alt" className="relative isolate overflow-hidden">
+      {/*
+        AJUSTE MOBILE — azul topo-direita, lilas no canto oposto, ancorado a
+        esta secao. CORRECAO FINAL MOBILE (recuperar o preto) — tamanho/
+        alpha reduzidos para virar "area localizada de cor" (pedido
+        explicito), com preto real entre o cabecalho e o acordeao.
+      */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 md:hidden"
+      >
+        <div
+          className="absolute top-0 right-0 h-48 w-48 -translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"
+          style={{
+            background: "radial-gradient(circle, var(--s360-ambient-blue), transparent 70%)",
+            opacity: 0.55,
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-52 w-52 -translate-x-1/4 translate-y-1/4 rounded-full blur-3xl"
+          style={{
+            background: "radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%)",
+          }}
+        />
+      </div>
+
+      <Container className="relative z-10 flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"
           direction="left"

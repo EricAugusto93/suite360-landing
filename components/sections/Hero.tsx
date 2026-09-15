@@ -98,6 +98,30 @@ export function Hero() {
             "radial-gradient(circle, var(--s360-glow-blue), transparent 70%)",
         }}
       />
+
+      {/*
+        AJUSTE MOBILE (fundo azul e lilas mais visivel) — o Hero nao tinha
+        NENHUMA presenca lilas antes desta correcao (so o gradiente vertical
+        azul acima e o glow azul a direita). Acento lilas exclusivo mobile
+        (`lg:hidden` — nao existe no gradiente diagonal do desktop, que fica
+        inalterado), ancorado no canto inferior esquerdo, fora da coluna de
+        texto central (preserva a legibilidade do H1/subheadline, que ja
+        teve um problema real de contraste documentado nesta secao). Reforca
+        o campo continuo global (AmbientBackground.tsx) exatamente na regiao
+        onde ele comeca (~4% do topo da pagina), completando a leitura
+        "azul em cima/direita, lilas embaixo/esquerda" logo na primeira tela.
+
+        CORRECAO FINAL MOBILE (recuperar o preto) — tamanho/alpha reduzidos
+        (h-80 alpha 0.38 -> h-60 alpha 0.22), consistente com o recalibre
+        aplicado nas demais secoes.
+      */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-0 h-60 w-60 -translate-x-1/4 translate-y-1/4 rounded-full blur-3xl lg:hidden"
+        style={{
+          background: "radial-gradient(circle, rgba(139,92,246,0.22), transparent 70%)",
+        }}
+      />
       <Container className="relative grid grid-cols-1 items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         <div className="flex flex-col gap-7 text-center lg:text-left">
           {/*
