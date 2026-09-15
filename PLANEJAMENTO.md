@@ -546,10 +546,10 @@ Registro de decisões/ajustes feitos durante a implementação, sem alterar as d
 
 ## 14.16 Número real de WhatsApp configurado (fora do fluxo de fases)
 
-- **Número fornecido pelo usuário**: formato compatível com DDD 41 (Brasil) + celular com o nono dígito, sem código de país no valor original — assumido Brasil (`55` adicionado na frente), assumção sinalizada de volta ao usuário para confirmação em vez de aplicada silenciosamente. Número real redigido deste documento (FASE 14, ver seção 14.20) — nunca deve constar em arquivo versionado; existe apenas como variável de ambiente.
+- **Número fornecido pelo usuário**: formato compatível com DDD 41 (Brasil) + celular com o nono dígito, sem código de país no valor original — assumido Brasil (`55` adicionado na frente), assumção sinalizada de volta ao usuário para confirmação em vez de aplicada silenciosamente. Número real redigido deste documento (FASE 14, ver seção 14.18) — nunca deve constar em arquivo versionado; existe apenas como variável de ambiente.
 - **Configurado em `.env.local`** (arquivo local, cai na regra `.env*` do `.gitignore`, nunca commitado) — não em `.env.example` (que deve continuar vazio) nem em nenhum arquivo versionado.
 - **Testado de ponta a ponta com o número real**: CTA secundário do Hero, botão flutuante e botão final da Confirmação do diagnóstico — todos geram links `wa.me` corretos, com as mensagens já existentes (`buildSpecialistMessage`/`buildDiagnosticMessage`), sem nenhum dado do formulário (empresa/cidade/segmento) vazando para analytics (só para a mensagem do WhatsApp em si, que é o comportamento esperado e já documentado desde a FASE 09).
-- **Pendência real remanescente — resolvida na FASE 14**: ver seção 14.20 abaixo (variável configurada em produção na Vercel).
+- **Pendência real remanescente — resolvida na FASE 14**: ver seção 14.18 abaixo (variável configurada em produção na Vercel).
 
 ---
 
@@ -589,6 +589,24 @@ Registro de decisões/ajustes feitos durante a implementação, sem alterar as d
 **Git/GitHub**
 - Git e GitHub CLI não estavam instalados na máquina — instalados via `winget` a pedido do usuário. Repositório local inicializado (`git init`), identidade configurada, dois commits feitos localmente cobrindo todo o trabalho desde o início do projeto.
 - **Pendência real**: o *push* para `https://github.com/EricAugusto93/Site360-filmes.git` não pôde ser concluído — precisa de `gh auth login` (login interativo via navegador), que só o usuário pode fazer na própria máquina. Os commits estão seguros localmente, aguardando autenticação para serem enviados.
+
+---
+
+## 14.18 FASE 14 — Ativação do WhatsApp em produção
+
+- Escopo estrito: só configuração de ambiente (`NEXT_PUBLIC_WHATSAPP_NUMBER` na Vercel, Production) + QA completo em produção via Playwright. Auditoria prévia confirmou a arquitetura já correta (`lib/whatsapp.ts` como único ponto de normalização/construção de URL/mensagem, nenhum número hardcoded em componente) — nenhuma mudança de código de produto foi necessária.
+- Redeploy obrigatório após a variável `NEXT_PUBLIC_*` ser configurada (confirmado por timestamp do deployment posterior à configuração).
+- QA cobriu: Hero/Diagnóstico/CTA Final/botão flutuante → WhatsApp, mensagem genérica e personalizada corretas, encoding de caracteres especiais, segmento "Outro" com valor customizado, privacidade (localStorage/sessionStorage/cookies vazios antes/depois de reload), analytics sem GTM configurado (`trackEvent` no-op seguro), mobile (360/390px) e desktop (1440px) sem overflow.
+- **Achado real durante o QA do botão flutuante**: o primeiro teste automatizado (scroll sintético de 50 passos rápidos) reportou o botão não sumindo perto do Footer — investigado antes de assumir bug real; um reteste com scroll único e espera generosa confirmou o comportamento correto (`opacity:0`/`pointer-events:none`/`aria-hidden:true`). Falso positivo do próprio script de teste, não um defeito do produto.
+- **Achado de segurança real, corrigido**: o número real de WhatsApp estava em texto simples em `CHECKLIST.md` e neste documento (documentação, nunca em código) — redigido de ambos nesta fase; o número passou a existir só como variável de ambiente na Vercel.
+- O telefone institucional exibido como texto simples (sem link) no `Footer.tsx` é uma decisão explícita e documentada de uma sessão anterior (contato institucional, não faz parte da arquitetura de CTA de WhatsApp) — verificado e mantido, fora do escopo desta fase.
+
+## 14.19 FASE 15 — GTM + GA4 (auditoria de código concluída; ativação externa bloqueada)
+
+- Auditoria completa confirmou a arquitetura de analytics já correta e pronta para receber um `NEXT_PUBLIC_GTM_ID` real: GTM como único ponto de integração (GA4 deve ser configurado dentro do container, nunca em paralelo — nenhum `gtag.js`/script direto do GA4 no código), `trackEvent()` como abstração central única, taxonomia de 5 eventos (`cta_click`/`whatsapp_click`/`diagnostic_start`/`diagnostic_step_complete`/`diagnostic_complete`) tipada de forma que PII é estruturalmente impossível de vazar (`EventParamsMap` só aceita `source`/`destination`/`step`, nunca um campo de formulário).
+- QA local do gating de consentimento (`NEXT_PUBLIC_GTM_ID` de teste, formato válido mas claramente não-real, nunca commitado, removido ao final da sessão) confirmou os 3 cenários corretos: sem decisão (banner aparece, zero script/request do Google), rejeitado (nunca carrega, persiste após reload), aceito (script só após aceitar, `dataLayer` recebe os 5 eventos corretamente, persiste após reload).
+- **Bug real encontrado e corrigido**: `ConsentBanner.tsx` usava `inset-x-0 bottom-0` (ponta a ponta) no mobile, cobrindo por completo o botão flutuante do WhatsApp nessa faixa de tela — medido antes/depois via `getBoundingClientRect`. Corrigido unificando para o cartão ancorado à esquerda já usado a partir de `sm:` (`right-24` reserva a coluna do botão flutuante + 20px de respiro, matematicamente constante em qualquer largura de viewport já que os dois elementos são ancorados à mesma borda direita da tela), sem tocar em nenhum componente de WhatsApp. Revalidado em 320/360/390/768px — zero sobreposição, zero overflow, botões legíveis.
+- **Bloqueio real, não um erro de código**: criar um container GTM e uma propriedade GA4 reais exige login autenticado numa conta Google do cliente — acesso que não existe nesta sessão. Nenhum ID foi inventado. A parte de configuração externa (Etapas 15–30 da FASE 15) fica pendente até o usuário fornecer os IDs reais (`GTM-XXXXXXX` / `G-XXXXXXXXXX`) ou os acessos necessários.
 
 ---
 

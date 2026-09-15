@@ -18,13 +18,25 @@ type ConsentBannerProps = {
  * categorias artificiais (secao 22). Aceitar e Rejeitar tem o mesmo peso
  * visual (mesmo tamanho, variantes de contraste equivalente): nenhum dark
  * pattern (secao 19).
+ *
+ * FASE 15 — achado real medido via QA: a versao anterior era `inset-x-0
+ * bottom-0` (ponta a ponta) so no mobile, cobrindo por completo o botao
+ * flutuante do WhatsApp (tambem fixed/bottom, `WhatsAppFloatingButton.tsx`,
+ * fora do escopo desta correcao) nessa faixa de tela. Unificado para o
+ * mesmo cartao ancorado a esquerda ja usado em `sm:` (nunca span total),
+ * com `right-24` reservando a coluna do botao flutuante (56px de largura +
+ * 20px de offset da borda) mais um respiro de 20px — vale em qualquer
+ * largura de viewport, ja que os dois elementos sao ancorados a mesma
+ * borda direita da tela. A partir de `sm:`, `right-auto`+`max-w-sm`
+ * reproduzem exatamente o comportamento original (o cartao compacto nunca
+ * chegava perto do botao flutuante nessas larguras).
  */
 export function ConsentBanner({ onAccept, onReject }: ConsentBannerProps) {
   return (
     <div
       role="region"
       aria-label="Consentimento de cookies"
-      className="border-border bg-card shadow-elevated fixed inset-x-0 bottom-0 z-50 border-t p-4 sm:right-auto sm:bottom-4 sm:left-4 sm:max-w-sm sm:rounded-lg sm:border"
+      className="border-border bg-card shadow-elevated fixed right-24 bottom-4 left-4 z-50 rounded-lg border p-4 sm:right-auto sm:max-w-sm"
     >
       <div className="flex flex-col gap-3">
         <p className="text-small text-foreground">

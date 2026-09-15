@@ -498,6 +498,35 @@
 
 ---
 
+## FASE 15 — GTM + GA4 + mensuração de conversões
+
+> Escopo estrito: transformar a camada de analytics já implementada em mensuração real via GTM + GA4, sem tocar diagnóstico/WhatsApp/copy/identidade visual, sem duplicar analytics.
+
+**Parte de código (concluída):**
+
+- [x] Auditoria completa (`lib/analytics.ts`, `lib/consent.ts`, `AnalyticsProvider.tsx`, `ConsentBanner.tsx`, `TrackedCtaLink.tsx`, `WhatsAppLinkButton.tsx`, `WhatsAppFloatingButton.tsx`, `DiagnosticWizard.tsx`, `ConfirmationStep.tsx`, `app/layout.tsx`) — arquitetura confirmada: GTM como único ponto de integração (GA4 deve ser configurado dentro dele, nunca em paralelo), `trackEvent()` como abstração central única (nenhum `dataLayer.push`/`gtag` espalhado por componente), taxonomia de 5 eventos intacta e tipada (`EventParamsMap` torna PII estruturalmente impossível de vazar — nenhum campo de formulário aceito como parâmetro)
+- [x] `diagnostic_start` confirmado: dispara só na primeira interação real (`onSelect`/`onChange`), nunca por mount/viewport, guardado por `ref` (uma vez por sessão)
+- [x] `diagnostic_step_complete` confirmado: `step` usa o identificador técnico estável da etapa (`currentStepId`), nunca texto de UI
+- [x] `diagnostic_complete` confirmado: guardado por `hasCompletedRef`, dispara uma única vez mesmo em fluxos concluir→editar→voltar à confirmação
+- [x] `whatsapp_click`/`cta_click` confirmados: só `source`/`destination`, nenhum dado de formulário
+- [x] QA local do gating de consentimento (ID de teste temporário, nunca commitado, removido ao final): 3 cenários — sem decisão (banner aparece, zero script/request do Google), rejeitado (nunca carrega, mesmo após reload, escolha persiste), aceito (script carrega só após aceitar, `dataLayer` recebe os 5 eventos corretamente, persiste após reload) — todos aprovados
+- [x] **Bug real encontrado e corrigido**: `ConsentBanner` usava `inset-x-0 bottom-0` (ponta a ponta) no mobile, cobrindo completamente o botão flutuante do WhatsApp nessa faixa de tela (medido: sobreposição total antes da correção). Corrigido unificando para o mesmo cartão ancorado à esquerda já usado em `sm:` (`right-24` reserva a coluna do botão flutuante + respiro), sem alterar nenhum componente de WhatsApp. Revalidado em 320/360/390/768px: zero sobreposição (gap de 20px constante no mobile), zero overflow, botões "Aceitar"/"Rejeitar" legíveis em todas as larguras
+- [x] Lint, TypeScript e build de produção sem erros
+- [x] Commit cobrindo só a correção do `ConsentBanner.tsx`
+
+**Parte de produção (bloqueada — aguardando o usuário):**
+
+- [ ] Container GTM real — **não criado**: sem acesso autenticado a uma conta Google para criar/identificar o container correto
+- [ ] Propriedade GA4 real — **não criada**: mesma limitação de acesso
+- [ ] GA4 configurado dentro do GTM
+- [ ] Eventos/parâmetros configurados no GTM, GTM Preview validado
+- [ ] Key Events no GA4 (`whatsapp_click`, principalmente `source=diagnostic`; `diagnostic_complete` como secundário)
+- [ ] `NEXT_PUBLIC_GTM_ID` configurada na Vercel (Production)
+- [ ] Redeploy + QA em produção com os 3 cenários de consentimento
+- [ ] Validação do usuário
+
+---
+
 ## GO-LIVE (pendências externas para o lançamento)
 
 Nenhum destes itens pode ser marcado como concluído pelo código — todos dependem de uma decisão ou material do cliente.
