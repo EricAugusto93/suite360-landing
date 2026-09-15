@@ -546,10 +546,10 @@ Registro de decisões/ajustes feitos durante a implementação, sem alterar as d
 
 ## 14.16 Número real de WhatsApp configurado (fora do fluxo de fases)
 
-- **Número fornecido pelo usuário**: `41991111965`. Sem código de país, formato compatível com DDD 41 (Brasil) + celular com o nono dígito — assumido Brasil (`55` adicionado na frente, resultando em `5541991111965`), assumção sinalizada de volta ao usuário para confirmação em vez de aplicada silenciosamente.
+- **Número fornecido pelo usuário**: formato compatível com DDD 41 (Brasil) + celular com o nono dígito, sem código de país no valor original — assumido Brasil (`55` adicionado na frente), assumção sinalizada de volta ao usuário para confirmação em vez de aplicada silenciosamente. Número real redigido deste documento (FASE 14, ver seção 14.20) — nunca deve constar em arquivo versionado; existe apenas como variável de ambiente.
 - **Configurado em `.env.local`** (arquivo local, cai na regra `.env*` do `.gitignore`, nunca commitado) — não em `.env.example` (que deve continuar vazio) nem em nenhum arquivo versionado.
 - **Testado de ponta a ponta com o número real**: CTA secundário do Hero, botão flutuante e botão final da Confirmação do diagnóstico — todos geram links `wa.me` corretos, com as mensagens já existentes (`buildSpecialistMessage`/`buildDiagnosticMessage`), sem nenhum dado do formulário (empresa/cidade/segmento) vazando para analytics (só para a mensagem do WhatsApp em si, que é o comportamento esperado e já documentado desde a FASE 09).
-- **Pendência real remanescente**: este número só está ativo no ambiente local (`.env.local`). Para a landing publicada em produção funcionar com o WhatsApp real, a mesma variável (`NEXT_PUBLIC_WHATSAPP_NUMBER=5541991111965`) precisa ser configurada manualmente no painel do provedor de hospedagem (Vercel) no momento do deploy — ver `DEPLOY.md`, seção 2.
+- **Pendência real remanescente — resolvida na FASE 14**: ver seção 14.20 abaixo (variável configurada em produção na Vercel).
 
 ---
 

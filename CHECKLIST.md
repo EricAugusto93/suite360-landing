@@ -449,6 +449,55 @@
 
 ---
 
+## Trabalho fora do fluxo de fases — Ajuste de ritmo vertical (Metodologia→Processo) e centralização da logo no Header
+
+> Duas correções pontuais de polimento visual, cada uma com fase diagnóstica obrigatória (medição real via `getBoundingClientRect`/pixels renderizados antes de qualquer edição, sem "corrigir às cegas"). Ambas no commit `c82d307` ("Fix header logo vertical centering and methodology/process spacing"), já enviado ao GitHub (`github-new`) e implantado em produção na Vercel (`https://suite360-landing.vercel.app`, confirmado ao vivo via HTTP 200).
+
+**AJUSTE 1 — Espaçamento Metodologia→Processo:**
+
+- [x] Medição real (6 breakpoints: 320/390/768/1024/1280/1440px) confirmou mobile já correto (proporção acima/abaixo ~1,4×) e o desequilíbrio começando exatamente em 768px, chegando a 3,3× em 1024px+
+- [x] **Causa raiz identificada**: soma das paddings verticais compartilhadas de `Section.tsx` (`md:py-28`/`lg:py-40`) das duas seções adjacentes, sem tier equivalente no espaçamento acima do texto de fechamento
+- [x] Correção escopada (não em `Section.tsx`, que afetaria toda transição do site): `md:pb-14! lg:pb-16!` em `MethodologySection.tsx` + `md:pt-14! lg:pt-16!` em `ProcessSection.tsx` (`!important` necessário porque `cn()` do projeto é concatenação pura, sem `tailwind-merge`)
+- [x] Resultado medido: proporção caiu de até 3,3× para 1,1×–1,4× em todos os breakpoints afetados, mobile inalterado
+- [x] Lint, TypeScript, build e overflow horizontal (390/1024/1440px) verificados
+
+**AJUSTE 2 — Centralização vertical da logo no Header:**
+
+- [x] Medição real identificou `self-start` no wrapper `<Link>` de `Logo.tsx` sobrescrevendo o `items-center` do Header — logo colada ao topo em todos os breakpoints, com deslocamento de até ~12,8px do centro
+- [x] Correção: remoção do `self-start` (imagem já é quase perfeitamente simétrica internamente — 3px vs 7px de sobra em 387px de altura natural, sub-pixel renderizado; nenhum `translate-y`/`object-position` adicional necessário)
+- [x] Resultado medido: diferença acima/abaixo caiu para 1,75–1,87px em todos os breakpoints (320/390/430/768/1440px), dentro da tolerância de 2–3px pedida; alinhamento com o centro do CTA "Diagnóstico" a menos de 0,5px
+- [x] **Achado durante a correção**: a primeira rodada já havia corrigido o problema no código, mas o usuário seguia vendo o defeito porque estava validando no site de produção (Vercel), que ainda não tinha recebido nenhum deploy desde antes desse ajuste — confirmado via `AskUserQuestion` antes de prosseguir, evitando aplicar um deslocamento arbitrário sobre um estado que já media correto
+- [x] Lint, TypeScript, build, overflow horizontal e console (0 erros) verificados
+
+**QA e deploy:**
+
+- [x] Ferramentas de QA temporárias (Playwright) sempre instaladas com `--no-save` e removidas ao final; `package.json`/`package-lock.json` confirmados sem resíduo
+- [x] Commit único (`c82d307`) cobrindo as duas correções + atualização deste checklist, `dev-server.log` e um screenshot solto excluídos
+- [x] Push para `github-new` e deploy em produção na Vercel — confirmado ao vivo (HTTP 200, HTML servido sem `self-start`, Display NFC presente)
+- [x] Validação do usuário
+
+---
+
+## FASE 14 — Ativação do WhatsApp em produção
+
+> Escopo estrito: só configuração de ambiente + QA. Nenhum redesign, nenhuma alteração de copy, nenhuma refatoração de componente que já funcionava, GTM/GA4/domínio intocados.
+
+- [x] Auditoria prévia (`lib/env.ts`, `lib/whatsapp.ts`, `WhatsAppLinkButton.tsx`, `WhatsAppFloatingButton.tsx`, `ConfirmationStep.tsx`, `Hero.tsx`, `FinalCTASection.tsx`) — arquitetura confirmada correta, `NEXT_PUBLIC_WHATSAPP_NUMBER` continua o único ponto de configuração, `buildWhatsAppUrl`/`buildDiagnosticMessage` continuam centralizados, nenhum número hardcoded em componente algum — **nenhuma alteração de código necessária**
+- [x] Projeto Vercel confirmado (`suite360films/suite360-landing`, aliasado a `suite360-landing.vercel.app`) antes de qualquer configuração — repositório antigo (`Site360-filmes`, remoto `origin`) não tocado
+- [x] `NEXT_PUBLIC_WHATSAPP_NUMBER` configurada em Production via `vercel env add` (nunca em arquivo versionado, `.env.example` inalterado)
+- [x] Novo deployment de produção gerado após a configuração (obrigatório para variáveis `NEXT_PUBLIC_*`) — confirmado HTTP 200 e timestamp do deployment posterior à variável
+- [x] QA completo em produção via Playwright: Hero → WhatsApp, Diagnóstico completo (6 etapas) → WhatsApp com mensagem personalizada correta, encoding de caracteres especiais (`é`/`ã`/`ã`/`&`) correto, segmento "Outro" com valor customizado correto (nunca vaza o literal "Outro"), CTA Final → WhatsApp, botão flutuante (aparece, número correto, some corretamente perto do Footer — comportamento confirmado após reteste cuidadoso, o primeiro teste automatizado deu falso positivo por scroll sintético rápido demais, não é bug real)
+- [x] Privacidade confirmada: `localStorage`/`sessionStorage`/cookies vazios antes e depois de reload; nenhum dado do diagnóstico persiste ou vaza para analytics/console/network; nenhum endpoint próprio recebe dados do formulário
+- [x] Analytics sem GTM configurado: `trackEvent` no-op seguro confirmado, zero requisições a `googletagmanager.com`/`google-analytics.com`
+- [x] Mobile (360/390px) e desktop (1440px) validados em produção: zero overflow horizontal, zero erros de console, botão flutuante dentro da viewport
+- [x] Busca de segurança por números hardcoded: nenhum número real ou de QA em arquivo de código versionado. **Achado real**: o número real estava em texto em `CHECKLIST.md`/`PLANEJAMENTO.md` (documentação, não código) — redigido destes dois arquivos nesta fase
+- [x] Telefone institucional em `Footer.tsx` (texto informativo, sem link) — confirmado como decisão explícita e documentada de sessão anterior, não relacionado à arquitetura de WhatsApp/CTA, fora do escopo desta fase
+- [x] Lint, TypeScript e build de produção sem erros (nenhuma mudança de código de produto — só documentação)
+- [x] Commit único cobrindo a redação dos números em `CHECKLIST.md`/`PLANEJAMENTO.md`
+- [ ] Validação do usuário
+
+---
+
 ## GO-LIVE (pendências externas para o lançamento)
 
 Nenhum destes itens pode ser marcado como concluído pelo código — todos dependem de uma decisão ou material do cliente.
@@ -458,8 +507,8 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 - [x] Variante da logo adequada a fundo escuro — resolvido: `public/brand/suite360-wordmark-v2.png` (lockup completo, corrigido para transparência real e texto branco/legível sobre o header quase preto), aplicada em `Logo.tsx`
 - [ ] Fornecer um símbolo/monograma isolado adequado a favicon 32×32 (o wordmark atual não cabe legível nesse tamanho) — enquanto isso, nenhum favicon é exibido (removido o genérico do Next.js, de propósito)
 - [x] Divergência de nome "Suite" vs. "Suite360 Films" — resolvida: o novo arquivo de logo usa o lockup completo ("Suite360 Films" + "A nova perspectiva."), não mais só o ícone parcial "Suite" da FASE 13
-- [x] Fornecer número de WhatsApp Business — `5541991111965` (assumido Brasil/DDD 41; confirmar se estiver errado), testado e funcionando (Hero, botão flutuante, confirmação do diagnóstico)
-- [x] Configurar `NEXT_PUBLIC_WHATSAPP_NUMBER` — feito localmente em `.env.local` (nunca commitado, fora do git). **Ainda falta configurar a mesma variável no painel do provedor de hospedagem (Vercel) quando o deploy real acontecer** — ver `DEPLOY.md`
+- [x] Fornecer número de WhatsApp Business — fornecido (assumido Brasil/DDD 41; confirmar se estiver errado), testado e funcionando (Hero, botão flutuante, confirmação do diagnóstico). Número real não fica neste documento por segurança — existe apenas como `NEXT_PUBLIC_WHATSAPP_NUMBER` (env var na Vercel, ver FASE 14)
+- [x] Configurar `NEXT_PUBLIC_WHATSAPP_NUMBER` — feito localmente em `.env.local` (nunca commitado) **e em produção na Vercel** (Environment: Production, FASE 14), com redeploy e QA completo aprovados
 - [ ] Criar/fornecer container GTM
 - [ ] Configurar `NEXT_PUBLIC_GTM_ID`
 - [ ] Configurar GA4 dentro do GTM
