@@ -26,12 +26,21 @@ import Link from "next/link";
  * (840x387, bem mais largo que alto) em vez de um quadrado com margem
  * vazia. `w-auto` + altura fixa preserva essa proporcao original em
  * qualquer tamanho de tela.
+ *
+ * AJUSTE 2 — o wrapper tinha `self-start`, que sobrescrevia o
+ * `items-center` do Header e colava a logo no topo do eixo cruzado (medido:
+ * ate 12.8px de deslocamento do centro real em relacao ao centro do CTA
+ * em telas >=768px). A propria imagem ja e quase perfeitamente simetrica
+ * (3px de sobra acima vs 7px abaixo, de 387px — menos de 1px ja
+ * renderizado, imperceptivel), entao remover `self-start` e deixar o
+ * `items-center` do pai agir e suficiente; nenhum deslocamento optico
+ * extra foi necessario.
  */
 export function Logo() {
   return (
     <Link
       href="/"
-      className="focus-visible:ring-primary focus-visible:ring-offset-background inline-flex w-fit shrink-0 items-center self-start rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+      className="focus-visible:ring-primary focus-visible:ring-offset-background inline-flex w-fit shrink-0 items-center rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     >
       <Image
         src="/brand/suite360-wordmark-v2.png"

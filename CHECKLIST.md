@@ -401,15 +401,63 @@
 
 ---
 
+## Trabalho fora do fluxo de fases — Fundo mobile, Display NFC premium e atualização de logo
+
+> Trabalho conduzido em etapas curtas com validação visual antes de cada avanço, como nas rodadas anteriores. Tudo abaixo está no commit `c2154cf` ("Add premium NFC display, mobile ambient background, and logo update"), já enviado ao GitHub (`github-new`) e implantado em produção na Vercel (`https://suite360-landing.vercel.app`).
+
+**Fundo mobile, espaçamentos e fade lateral — ETAPAS 1-5** (commit anterior `134178f`, já em produção antes desta rodada):
+
+- [x] ETAPA 1 — Auditoria somente-leitura da implementação atual do fundo/espaçamentos/fade lateral
+- [x] ETAPA 2 — 3 halos lilás mobile-only adicionados ao `AmbientBackground.tsx`
+- [x] ETAPA 3 — Padding mobile reduzido (`Section.tsx`/`OptimizationShowcase.tsx`), máscara de fade na atmosfera do Diagnóstico, halos recalibrados
+- [x] ETAPA 4 — `direction` do `ScrollReveal` padronizado para `"left"` em 6 seções (mesma direção de entrada lateral em toda a landing)
+- [x] ETAPA 5 — **Bug real raiz encontrado e corrigido**: `useIsMobileViewport` (`useSyncExternalStore`) nunca resolvia `true` em automação headless sem outro motivo de rerender — trocado por `useState`+`useEffect`. Segundo bug encontrado por trás do mesmo sintoma: o Motion trava a pose "hidden" no primeiro render e não reaplica ao trocar `variants` depois — corrigido com remount único via `key` em `ScrollReveal.tsx`. Regressão real de overflow horizontal (~4px) causada pela própria correção, identificada e corrigida (`overflow-hidden` faltando em 4 seções)
+
+**Correção do fundo mobile azul/lilás — 3 rodadas de ajuste visual** (a versão aprovada do cliente passou por 3 iterações até ficar correta):
+
+- [x] "Correção conjunta mobile" — campo contínuo azul/lilás substituindo os 3 halos isolados + compactação da Metodologia
+- [x] "Ajuste mobile" (2 rodadas) — intensidade/proporção azul-lilás recalibrada (cliente pediu mais presença lilás, depois pediu recuar porque o preto tinha sumido) — resultado final: preto predominante (~55-60%), azul (~25-30%) e lilás (~15-20%) claramente reconhecíveis em cantos/bordas, sem duplicação de camadas
+- [x] **Bug real corrigido**: posicionamento de um halo lilás em `ProcessSection.tsx` usava `-translate-x-1/3` (relativo ao próprio tamanho do elemento, não da placa/seção) — deslocamento quase imperceptível; corrigido para o padrão `-translate-x-1/4` já usado nas demais seções
+- [x] Limitação documentada (não corrigida, fora do escopo autorizado): duas regiões consecutivas "pretas" na "Janela de análise" (mockup da Otimização, `SolutionSection.tsx`) — superfície de UI deliberadamente escura, fora do escopo do fundo ambiental
+- [x] Limitação documentada: redução de altura da Metodologia mobile ficou em ~6-7% (não os ~15-25% inicialmente pedidos) — conteúdo/texto real domina a altura de cada card, e a instrução previa priorizar integridade de conteúdo sobre o percentual exato
+
+**Display NFC premium — ETAPAS 1-5:**
+
+- [x] ETAPA 1 — Auditoria somente-leitura do retângulo azul placeholder original (`NfcShowcase.tsx`)
+- [x] ETAPA 2 — `NfcDisplayVisual.tsx` criado: placa de vidro/acrílico, núcleo NFC com anéis/pontos orbitais, 5 estrelas, celular abstrato entrando pela lateral — 100% HTML/CSS/ícones já existentes, sem imagem nova
+- [x] Correção 1 — celular ficava oculto abaixo de 640px (`hidden sm:block` removido); "ondas de aproximação" pedidas na Etapa 2 original tinham sido esquecidas, adicionadas
+- [x] Correção 2 — celular reconhecível como smartphone em qualquer tela: rotação/geometria refeitas (só ~18px visíveis antes, insuficiente); teto de largura da placa passou de fixo 280px para progressivo (320→400px)
+- [x] ETAPA 3 — Refinamento de profundidade/hierarquia (sombra em camadas, glow contido, 1 anel a menos); correção seguinte após reprovação: núcleo ~30% maior, celular com rotação mais acentuada (13°→19°), composição reequilibrada (núcleo deslocado ~8% à esquerda)
+- [x] ETAPA 4 — 5 microanimações CSS-only (pulso do núcleo, expansão das ondas, órbita dos pontos, respiração da borda, reflexo deslizante), `prefers-reduced-motion` neutraliza tudo via regra global já existente
+- [x] ETAPA 5 — Auditoria final: 7 breakpoints sem overflow, WebKit testado (achado investigado e confirmado como artefato de automação headless — salto instantâneo de scroll, não afeta usuários reais), acessibilidade confirmada (0 elementos focáveis dentro do decorativo, `aria-hidden`/`pointer-events-none` corretos, título/textos/legenda preservados semanticamente)
+
+**Atualização da logo:**
+
+- [x] **Bug real corrigido no arquivo fonte fornecido pelo usuário**: `logo suite.png` tinha um retângulo branco opaco atrás só da palavra "Suite" (resto do arquivo já era transparente) — corrigido via un-matte de alpha (luminância → transparência), sem alterar nenhum pixel do desenho
+- [x] "Suite" recolorido de preto para branco (aprovado explicitamente) — ficava ilegível sobre o fundo quase preto do header (`#050505`); depois, a pedido do usuário, restaurado para o preto original sobre chip branco (pixels originais do arquivo fonte, sem reprocessamento)
+- [x] Logo ampliada no header (`h-9 sm:h-11` → `h-12 sm:h-14`) a pedido do usuário
+- [x] Novo arquivo (`public/brand/suite360-wordmark-v2.png`) aplicado em `Logo.tsx` — lockup completo "Suite360 Films / A nova perspectiva.", não mais só o ícone/wordmark parcial usado até a FASE 13
+
+**QA e deploy (todas as rodadas acima):**
+
+- [x] Lint, TypeScript e build de produção sem erros em cada rodada
+- [x] Zero overflow horizontal em todas as validações (320 a 1440px)
+- [x] Ferramentas de QA temporárias (Playwright, WebKit) sempre instaladas com `--no-save` e removidas ao final; `package.json`/`package-lock.json` confirmados sem resíduo a cada rodada
+- [x] Commit único (`c2154cf`) cobrindo as três frentes acima, revisado arquivo por arquivo antes de commitar (separado corretamente do trabalho de sessões anteriores, `dev-server.log` e um screenshot solto excluídos)
+- [x] Push para `github-new` e deploy em produção na Vercel — confirmado ao vivo (HTTP 200, conteúdo novo presente no HTML servido)
+- [ ] Validação do usuário
+
+---
+
 ## GO-LIVE (pendências externas para o lançamento)
 
 Nenhum destes itens pode ser marcado como concluído pelo código — todos dependem de uma decisão ou material do cliente.
 
 - [ ] Definir domínio oficial
 - [ ] Configurar `NEXT_PUBLIC_SITE_URL` no ambiente de produção
-- [ ] Fornecer uma variante da logo oficial adequada a fundo escuro (a versão atual só funciona em superfícies claras — testado, não é filtro CSS que resolve)
-- [ ] Fornecer um símbolo/monograma isolado adequado a favicon 32×32 (a logo atual só tem o wordmark "Suite", ilegível nesse tamanho) — enquanto isso, nenhum favicon é exibido (removido o genérico do Next.js, de propósito)
-- [ ] Resolver a divergência de nome: a logo oficial mostra só "Suite", mas toda a copy/metadata do site usa "Suite360 Films" — decisão do cliente sobre qual é o nome/mark definitivo
+- [x] Variante da logo adequada a fundo escuro — resolvido: `public/brand/suite360-wordmark-v2.png` (lockup completo, corrigido para transparência real e texto branco/legível sobre o header quase preto), aplicada em `Logo.tsx`
+- [ ] Fornecer um símbolo/monograma isolado adequado a favicon 32×32 (o wordmark atual não cabe legível nesse tamanho) — enquanto isso, nenhum favicon é exibido (removido o genérico do Next.js, de propósito)
+- [x] Divergência de nome "Suite" vs. "Suite360 Films" — resolvida: o novo arquivo de logo usa o lockup completo ("Suite360 Films" + "A nova perspectiva."), não mais só o ícone parcial "Suite" da FASE 13
 - [x] Fornecer número de WhatsApp Business — `5541991111965` (assumido Brasil/DDD 41; confirmar se estiver errado), testado e funcionando (Hero, botão flutuante, confirmação do diagnóstico)
 - [x] Configurar `NEXT_PUBLIC_WHATSAPP_NUMBER` — feito localmente em `.env.local` (nunca commitado, fora do git). **Ainda falta configurar a mesma variável no painel do provedor de hospedagem (Vercel) quando o deploy real acontecer** — ver `DEPLOY.md`
 - [ ] Criar/fornecer container GTM

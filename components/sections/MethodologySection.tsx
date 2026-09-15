@@ -136,7 +136,18 @@ export function MethodologySection() {
     // PROPRIO painel so clipa os FILHOS dele (os itens da timeline,
     // protegidos), nao o deslocamento do painel em si, que e filho direto
     // desta `<Section>`.
-    <Section variant="elevated" className="overflow-hidden">
+    // AJUSTE 1 — `md:pb-14!`/`lg:pb-16!` (com `!important`, ja que `cn()`
+    // aqui e so concatenacao, sem tailwind-merge: sem isso a ordem de
+    // geracao do CSS nao garante que a sobrescrita vença o `md:py-28`/
+    // `lg:py-40` herdados de `Section.tsx`) reduzem so o padding INFERIOR
+    // desta secao a partir de 768px — o padding superior (heranca de cima)
+    // e o mobile/sm continuam intocados. Isolado ao par Metodologia→
+    // Processo (ver `pt` correspondente em ProcessSection.tsx); nao mexe
+    // em `Section.tsx`, que afetaria toda transicao do site.
+    <Section
+      variant="elevated"
+      className="overflow-hidden md:pb-14! lg:pb-16!"
+    >
       <Container className="flex flex-col items-center">
         <ScrollReveal
           variant="fade-up"

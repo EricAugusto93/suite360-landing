@@ -56,7 +56,15 @@ export function ProcessSection() {
     // tinha), o deslocamento lateral podia extrapolar a viewport durante
     // o estado oculto/em transicao, causando um overflow horizontal real
     // (~4px, confirmado via `scrollWidth` antes desta correcao).
-    <Section variant="base" className="relative isolate overflow-hidden">
+    // AJUSTE 1 — `md:pt-14!`/`lg:pt-16!` reduzem so o padding SUPERIOR
+    // desta secao a partir de 768px, espelhando o `pb` correspondente em
+    // MethodologySection.tsx (mesmo motivo do `!important`: `cn()` aqui e
+    // so concatenacao). O padding inferior (transicao para a proxima
+    // secao) e o mobile/sm continuam intocados.
+    <Section
+      variant="base"
+      className="relative isolate overflow-hidden md:pt-14! lg:pt-16!"
+    >
       {/*
         AJUSTE MOBILE (correcao visual efetiva) — esta secao nao tinha
         NENHUMA camada decorativa local antes; dependia inteiramente do
