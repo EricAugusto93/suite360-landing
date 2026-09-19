@@ -498,31 +498,34 @@
 
 ---
 
-## FASE 15 — GTM + GA4 + mensuração de conversões
+## FASE 15 — CONCLUÍDA — GTM + GA4 + mensuração de conversões
 
 > Escopo estrito: transformar a camada de analytics já implementada em mensuração real via GTM + GA4, sem tocar diagnóstico/WhatsApp/copy/identidade visual, sem duplicar analytics.
 
-**Parte de código (concluída):**
+**Parte de código:**
 
-- [x] Auditoria completa (`lib/analytics.ts`, `lib/consent.ts`, `AnalyticsProvider.tsx`, `ConsentBanner.tsx`, `TrackedCtaLink.tsx`, `WhatsAppLinkButton.tsx`, `WhatsAppFloatingButton.tsx`, `DiagnosticWizard.tsx`, `ConfirmationStep.tsx`, `app/layout.tsx`) — arquitetura confirmada: GTM como único ponto de integração (GA4 deve ser configurado dentro dele, nunca em paralelo), `trackEvent()` como abstração central única (nenhum `dataLayer.push`/`gtag` espalhado por componente), taxonomia de 5 eventos intacta e tipada (`EventParamsMap` torna PII estruturalmente impossível de vazar — nenhum campo de formulário aceito como parâmetro)
+- [x] Auditoria completa (`lib/analytics.ts`, `lib/consent.ts`, `AnalyticsProvider.tsx`, `ConsentBanner.tsx`, `TrackedCtaLink.tsx`, `WhatsAppLinkButton.tsx`, `WhatsAppFloatingButton.tsx`, `DiagnosticWizard.tsx`, `ConfirmationStep.tsx`, `app/layout.tsx`) — arquitetura confirmada: GTM como único ponto de integração (GA4 configurado dentro dele, nunca em paralelo — nenhum `gtag.js`/Measurement ID hardcoded em código), `trackEvent()` como abstração central única (nenhum `dataLayer.push`/`gtag` espalhado por componente), taxonomia de 5 eventos intacta e tipada (`EventParamsMap` torna PII estruturalmente impossível de vazar — nenhum campo de formulário aceito como parâmetro)
 - [x] `diagnostic_start` confirmado: dispara só na primeira interação real (`onSelect`/`onChange`), nunca por mount/viewport, guardado por `ref` (uma vez por sessão)
 - [x] `diagnostic_step_complete` confirmado: `step` usa o identificador técnico estável da etapa (`currentStepId`), nunca texto de UI
 - [x] `diagnostic_complete` confirmado: guardado por `hasCompletedRef`, dispara uma única vez mesmo em fluxos concluir→editar→voltar à confirmação
 - [x] `whatsapp_click`/`cta_click` confirmados: só `source`/`destination`, nenhum dado de formulário
 - [x] QA local do gating de consentimento (ID de teste temporário, nunca commitado, removido ao final): 3 cenários — sem decisão (banner aparece, zero script/request do Google), rejeitado (nunca carrega, mesmo após reload, escolha persiste), aceito (script carrega só após aceitar, `dataLayer` recebe os 5 eventos corretamente, persiste após reload) — todos aprovados
-- [x] **Bug real encontrado e corrigido**: `ConsentBanner` usava `inset-x-0 bottom-0` (ponta a ponta) no mobile, cobrindo completamente o botão flutuante do WhatsApp nessa faixa de tela (medido: sobreposição total antes da correção). Corrigido unificando para o mesmo cartão ancorado à esquerda já usado em `sm:` (`right-24` reserva a coluna do botão flutuante + respiro), sem alterar nenhum componente de WhatsApp. Revalidado em 320/360/390/768px: zero sobreposição (gap de 20px constante no mobile), zero overflow, botões "Aceitar"/"Rejeitar" legíveis em todas as larguras
-- [x] Lint, TypeScript e build de produção sem erros
-- [x] Commit cobrindo só a correção do `ConsentBanner.tsx`
+- [x] **Bug real encontrado e corrigido**: `ConsentBanner` usava `inset-x-0 bottom-0` (ponta a ponta) no mobile, cobrindo completamente o botão flutuante do WhatsApp nessa faixa de tela. Corrigido unificando para o mesmo cartão ancorado à esquerda já usado em `sm:` (`right-24` reserva a coluna do botão flutuante + respiro), sem alterar nenhum componente de WhatsApp. Revalidado em 320/360/390/768px: zero sobreposição, zero overflow, botões "Aceitar"/"Rejeitar" legíveis. Commit `049dfc1`, enviado ao `github-new` — ver pendência de deploy abaixo
+- [x] Lint, TypeScript e build de produção sem erros (revalidado nesta rodada, nenhum código alterado)
 
-**Parte de produção (bloqueada — aguardando o usuário):**
+**Configuração externa — concluída pelo usuário:**
 
-- [ ] Container GTM real — **não criado**: sem acesso autenticado a uma conta Google para criar/identificar o container correto
-- [ ] Propriedade GA4 real — **não criada**: mesma limitação de acesso
-- [ ] GA4 configurado dentro do GTM
-- [ ] Eventos/parâmetros configurados no GTM, GTM Preview validado
-- [ ] Key Events no GA4 (`whatsapp_click`, principalmente `source=diagnostic`; `diagnostic_complete` como secundário)
-- [ ] `NEXT_PUBLIC_GTM_ID` configurada na Vercel (Production)
-- [ ] Redeploy + QA em produção com os 3 cenários de consentimento
+- [x] Container GTM real criado e publicado: **`GTM-MNNTCFS6`** ("Configuração inicial GA4 + eventos Suite360" — 6 tags, 5 gatilhos, 8 variáveis)
+- [x] Propriedade GA4 real conectada ao GTM: **`G-FMWXF5X63H`**
+- [x] 5 gatilhos de Evento Personalizado + 5 tags GA4 Event publicados, cobrindo exatamente a taxonomia existente: `diagnostic_start`, `diagnostic_step_complete`, `diagnostic_complete`, `whatsapp_click`, `cta_click`
+- [x] Variáveis de camada de dados (`DLV - source`, `DLV - destination`, `DLV - step`) mapeadas aos parâmetros já existentes no código — nenhum parâmetro novo foi necessário
+- [x] `NEXT_PUBLIC_GTM_ID=GTM-MNNTCFS6` configurada na Vercel (Production) — confirmado embutido corretamente no bundle JS ao vivo, sem vazamento do ID de teste usado no QA local
+- [x] GTM Preview/Tag Assistant conectou ao domínio de produção, detectou o container e o Google Tag/GA4; disparos reais observados (`cta_click`, `diagnostic_start`, `diagnostic_step_complete` com `source`/`destination`/`step` corretos); nenhum PII observado
+
+**Pendência real identificada nesta rodada (não é um bloqueio de analytics):**
+
+- [ ] **O deployment de produção atual não contém o commit `049dfc1`** (correção do `ConsentBanner` cobrindo o botão flutuante no mobile) — confirmado via inspeção do bundle JS ao vivo (contém `inset-x-0 bottom-0`, o padrão antigo, não `right-24`). O redeploy feito para ativar `NEXT_PUBLIC_GTM_ID` aparentemente reutilizou um build anterior a esse commit, em vez de gerar um build novo a partir do `main` mais recente. O GTM em si funciona normalmente nesse deployment (`GTM-MNNTCFS6` confirmado embutido corretamente) — só a correção visual do banner mobile ainda não está ao vivo. O commit já está integralmente commitado e enviado ao `github-new`; só falta um novo deploy de produção a partir do `main` atual para refletir isso. Nenhum deploy foi feito automaticamente — aguardando confirmação do usuário.
+- [ ] Auditoria final de Analytics/GA4 (Key Events, ausência de duplicidade, DebugView) antes do início efetivo de tráfego pago — mantida como tarefa futura, não bloqueante agora
 - [ ] Validação do usuário
 
 ---
@@ -538,11 +541,12 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 - [x] Divergência de nome "Suite" vs. "Suite360 Films" — resolvida: o novo arquivo de logo usa o lockup completo ("Suite360 Films" + "A nova perspectiva."), não mais só o ícone parcial "Suite" da FASE 13
 - [x] Fornecer número de WhatsApp Business — fornecido (assumido Brasil/DDD 41; confirmar se estiver errado), testado e funcionando (Hero, botão flutuante, confirmação do diagnóstico). Número real não fica neste documento por segurança — existe apenas como `NEXT_PUBLIC_WHATSAPP_NUMBER` (env var na Vercel, ver FASE 14)
 - [x] Configurar `NEXT_PUBLIC_WHATSAPP_NUMBER` — feito localmente em `.env.local` (nunca commitado) **e em produção na Vercel** (Environment: Production, FASE 14), com redeploy e QA completo aprovados
-- [ ] Criar/fornecer container GTM
-- [ ] Configurar `NEXT_PUBLIC_GTM_ID`
-- [ ] Configurar GA4 dentro do GTM
-- [ ] Definir Key Events no GA4 (sugestão: `diagnostic_complete`, `whatsapp_click`)
-- [ ] Revisar estratégia de Consent Mode (depende do desenho real do container GTM)
+- [x] Criar/fornecer container GTM — `GTM-MNNTCFS6`, publicado (FASE 15)
+- [x] Configurar `NEXT_PUBLIC_GTM_ID` — configurado na Vercel (Production), confirmado embutido no build ao vivo (FASE 15)
+- [x] Configurar GA4 dentro do GTM — `G-FMWXF5X63H` conectado, 5 tags GA4 Event publicadas para a taxonomia existente (FASE 15)
+- [ ] Definir/confirmar Key Events no GA4 (sugestão: `whatsapp_click` com `source=diagnostic`, `diagnostic_complete`) — não confirmado explicitamente ainda, revisar na auditoria final antes do tráfego pago
+- [ ] Revisar estratégia de Consent Mode (avaliação deliberadamente adiada — a arquitetura atual já bloqueia o GTM por completo antes do consentimento, o que é mais restritivo que Consent Mode v2; mudar isso é uma decisão de privacidade, não uma tarefa técnica pendente)
+- [ ] **Gerar um novo deploy de produção a partir do `main` atual** — o deployment ao vivo hoje não inclui o commit `049dfc1` (correção do `ConsentBanner` no mobile), aparentemente por ter reutilizado um build anterior no redeploy que ativou o GTM. O GTM em si funciona normalmente nesse deployment; só falta essa correção visual específica ir ao ar
 - [ ] Aprovar texto jurídico da Política de Privacidade
 - [ ] Adicionar link legal ao Footer (`legalLinks` em `Footer.tsx`, mecanismo já pronto)
 - [ ] Fornecer fotos reais do Display NFC (ver formato recomendado em `PLANEJAMENTO.md`, seção 14.12)
