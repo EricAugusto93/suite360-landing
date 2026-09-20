@@ -522,10 +522,35 @@
 - [x] `NEXT_PUBLIC_GTM_ID=GTM-MNNTCFS6` configurada na Vercel (Production) — confirmado embutido corretamente no bundle JS ao vivo, sem vazamento do ID de teste usado no QA local
 - [x] GTM Preview/Tag Assistant conectou ao domínio de produção, detectou o container e o Google Tag/GA4; disparos reais observados (`cta_click`, `diagnostic_start`, `diagnostic_step_complete` com `source`/`destination`/`step` corretos); nenhum PII observado
 
-**Pendência real identificada nesta rodada (não é um bloqueio de analytics):**
+**Pendência identificada nesta rodada — resolvida em seguida:**
 
-- [ ] **O deployment de produção atual não contém o commit `049dfc1`** (correção do `ConsentBanner` cobrindo o botão flutuante no mobile) — confirmado via inspeção do bundle JS ao vivo (contém `inset-x-0 bottom-0`, o padrão antigo, não `right-24`). O redeploy feito para ativar `NEXT_PUBLIC_GTM_ID` aparentemente reutilizou um build anterior a esse commit, em vez de gerar um build novo a partir do `main` mais recente. O GTM em si funciona normalmente nesse deployment (`GTM-MNNTCFS6` confirmado embutido corretamente) — só a correção visual do banner mobile ainda não está ao vivo. O commit já está integralmente commitado e enviado ao `github-new`; só falta um novo deploy de produção a partir do `main` atual para refletir isso. Nenhum deploy foi feito automaticamente — aguardando confirmação do usuário.
+- [x] **O deployment de produção não continha o commit `049dfc1`** (correção do `ConsentBanner` cobrindo o botão flutuante no mobile) — confirmado via inspeção do bundle JS ao vivo. Causa: o redeploy que ativou `NEXT_PUBLIC_GTM_ID` reaproveitou um build anterior a esse commit. Corrigido com um novo deploy de produção a partir do `main` atual (`dpl_EwVC1jSjuqM2SwCsntDsy9hQKMcD`); confirmado ao vivo que a correção (`right-24`, sem `inset-x-0 bottom-0`) e o GTM (`GTM-MNNTCFS6`) estão ambos presentes no mesmo build.
 - [ ] Auditoria final de Analytics/GA4 (Key Events, ausência de duplicidade, DebugView) antes do início efetivo de tráfego pago — mantida como tarefa futura, não bloqueante agora
+- [x] Validação do usuário
+
+---
+
+## FASE 16 — Auditoria e refino final de experiência, conversão e coerência visual
+
+> Auditoria completa da landing como experiência comercial real — jornada, Hero, ritmo vertical, design system, identidade, diagnóstico, Metodologia/Processo, Solução, prova social, CTAs, mobile-first, motion, performance/acessibilidade. Resultado: **nenhuma alteração de código foi necessária.** O trabalho das fases/rodadas anteriores já atende ao padrão pedido; a auditoria confirmou isso em vez de encontrar algo para corrigir.
+
+- [x] Leitura completa do código de todas as seções da landing (Hero, Problema, Diagnóstico, Metodologia, Processo, Solução, Provas Sociais, FAQ, CTA Final, Header, Footer, Logo, `AmbientBackground`, `Section`) e da documentação (`PLANEJAMENTO.md`, `CHECKLIST.md`)
+- [x] Jornada completa revisada (curiosidade → problema → diagnóstico → metodologia → confiança → solução → WhatsApp): narrativa contínua, sem quebras, sem informação repetida, sem CTA competindo — confirmado nas capturas reais
+- [x] Hero auditado: hierarquia, legibilidade, CTA primário/secundário, equilíbrio texto/radar, leitura em 390/1440px — sem defeito objetivo
+- [x] Ritmo vertical auditado em todas as fronteiras entre seções (medição real via `getBoundingClientRect`/`getComputedStyle`, 390 e 1440px) — consistente; a correção da FASE anterior (Metodologia→Processo) segue funcionando corretamente
+- [x] **Achado técnico (não visual)**: `Hero.tsx` declara um padding próprio (`pt-24 pb-20 sm:pt-28`) que nunca vence o padding padrão de `Section.tsx` a partir de `md:`/`lg:` (mesma causa-raiz do bug já corrigido no `ConsentBanner` — `cn()` do projeto não usa `tailwind-merge`, então a ordem de geração do Tailwind decide, não a ordem das classes). Medido: o Hero usa efetivamente `160px/160px` (os valores padrão) em vez do valor próprio pretendido a partir de 768px. **Não corrigido**: o resultado visual atual já é equilibrado e consistente com o resto do site (confirmado por captura real) e não há queixa ou defeito visível — mudar o comportamento agora seria uma decisão de design não solicitada, não a correção de um bug visível. Registrado para referência futura, caso o Hero precise de um ritmo diferente do resto da página.
+- [x] Design system auditado (radius, bordas, sombras, tipografia, eyebrow, pills, botões, ícones, cards, hover, focus): consistente em toda a landing — mesma linguagem visual em todas as seções, sem "seções-template" destoantes
+- [x] Identidade Suite360 auditada: logo no Header (centralização vertical confirmada, correção anterior segue válida) e no Footer (proporção/respiro corretos), sem deformação/recoloração improvisada
+- [x] Diagnóstico: fluxo completo percorrido (6 etapas), progressão clara, teclado testado (Tab + Enter), sem defeito objetivo — lógica intocada
+- [x] Metodologia/Processo: espaçamento, timeline, alinhamentos e comportamento mobile revisados nas capturas reais — sem defeito objetivo
+- [x] Solução: hierarquia confirmada (Otimização > Display NFC > Relatório/Manual), NFC não compete visualmente com a Otimização
+- [x] Provas Sociais: honesta e transparente como já estava — nenhuma prova social fabricada foi adicionada ou sugerida
+- [x] CTAs auditados do Hero ao CTA Final: hierarquia consistente (Diagnóstico gratuito = principal, WhatsApp = secundário condicional), nomenclatura estável, sem competição
+- [x] Mobile-first: inspeção real em 320/390/768/1440px (capturas completas da página inteira, seção por seção) — zero overflow horizontal nos 3 breakpoints testados, sem cards apertados, sem glows cortados, sem elementos decorativos invadindo conteúdo
+- [x] Motion: `prefers-reduced-motion` confirmado ativo globalmente; animações orientam sem atrasar leitura nem causar layout shift perceptível nas capturas
+- [x] Performance/acessibilidade pontual: zero erros de console (carregamento completo + scroll integral da página), heading hierarchy correta (1 H1), `aria-expanded` do FAQ funcional via teclado, anel de foco (`:focus-visible`) confirmado visível nos primeiros 5 elementos focáveis (Logo, CTA do Header, os 2 CTAs do Hero, primeiro `OptionCard` do diagnóstico)
+- [x] Dois falsos positivos identificados e descartados durante a própria auditoria, após reverificação cuidadosa (disciplina já estabelecida em fases anteriores): (1) um "vazio" aparente entre Diagnóstico e Metodologia era artefato de um scroll de settle rápido demais no meu próprio script de teste, não um bug da página; (2) uma leitura inicial de "anel de foco ausente" era erro de captura do teste, não um defeito real de acessibilidade
+- [x] Lint, TypeScript e build de produção sem erros (nenhum arquivo de produto alterado)
 - [ ] Validação do usuário
 
 ---
@@ -537,7 +562,7 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 - [ ] Definir domínio oficial
 - [ ] Configurar `NEXT_PUBLIC_SITE_URL` no ambiente de produção
 - [x] Variante da logo adequada a fundo escuro — resolvido: `public/brand/suite360-wordmark-v2.png` (lockup completo, corrigido para transparência real e texto branco/legível sobre o header quase preto), aplicada em `Logo.tsx`
-- [ ] Fornecer um símbolo/monograma isolado adequado a favicon 32×32 (o wordmark atual não cabe legível nesse tamanho) — enquanto isso, nenhum favicon é exibido (removido o genérico do Next.js, de propósito)
+- [ ] **Fornecer um símbolo/monograma isolado adequado a favicon 32×32** — item desatualizado nesta lista: `app/icon.png` (256×256) e `app/apple-icon.png` (180×180) existem e ESTÃO sendo servidos em produção (confirmado via inspeção do HTML: `<link rel="icon" href="/icon.png".../>`), não mais suprimidos como documentado antes. Porém o conteúdo é o lockup completo ("Suite360 Films" + tagline) sobre textura em mármore — renderizado em 32×32 real (testado), o texto fica ilegível, só um bloco escuro reconhecível. Não corrigido nesta fase (exigiria um monograma novo, que não deve ser inventado) — ver FASE 17
 - [x] Divergência de nome "Suite" vs. "Suite360 Films" — resolvida: o novo arquivo de logo usa o lockup completo ("Suite360 Films" + "A nova perspectiva."), não mais só o ícone parcial "Suite" da FASE 13
 - [x] Fornecer número de WhatsApp Business — fornecido (assumido Brasil/DDD 41; confirmar se estiver errado), testado e funcionando (Hero, botão flutuante, confirmação do diagnóstico). Número real não fica neste documento por segurança — existe apenas como `NEXT_PUBLIC_WHATSAPP_NUMBER` (env var na Vercel, ver FASE 14)
 - [x] Configurar `NEXT_PUBLIC_WHATSAPP_NUMBER` — feito localmente em `.env.local` (nunca commitado) **e em produção na Vercel** (Environment: Production, FASE 14), com redeploy e QA completo aprovados
@@ -546,16 +571,51 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 - [x] Configurar GA4 dentro do GTM — `G-FMWXF5X63H` conectado, 5 tags GA4 Event publicadas para a taxonomia existente (FASE 15)
 - [ ] Definir/confirmar Key Events no GA4 (sugestão: `whatsapp_click` com `source=diagnostic`, `diagnostic_complete`) — não confirmado explicitamente ainda, revisar na auditoria final antes do tráfego pago
 - [ ] Revisar estratégia de Consent Mode (avaliação deliberadamente adiada — a arquitetura atual já bloqueia o GTM por completo antes do consentimento, o que é mais restritivo que Consent Mode v2; mudar isso é uma decisão de privacidade, não uma tarefa técnica pendente)
-- [ ] **Gerar um novo deploy de produção a partir do `main` atual** — o deployment ao vivo hoje não inclui o commit `049dfc1` (correção do `ConsentBanner` no mobile), aparentemente por ter reutilizado um build anterior no redeploy que ativou o GTM. O GTM em si funciona normalmente nesse deployment; só falta essa correção visual específica ir ao ar
+- [x] Deploy de produção a partir do `main` atual — resolvido (ver FASE 15, `dpl_EwVC1jSjuqM2SwCsntDsy9hQKMcD`); confirmado que a correção do `ConsentBanner` e o GTM estão ambos ao vivo no mesmo build
 - [ ] Aprovar texto jurídico da Política de Privacidade
 - [ ] Adicionar link legal ao Footer (`legalLinks` em `Footer.tsx`, mecanismo já pronto)
 - [ ] Fornecer fotos reais do Display NFC (ver formato recomendado em `PLANEJAMENTO.md`, seção 14.12)
 - [ ] Fornecer material real do relatório de entrega (ver formato recomendado em `PLANEJAMENTO.md`, seção 14.12)
 - [ ] Fornecer provas sociais autorizadas (depoimento/logo/case/screenshot)
 - [ ] Fornecer/confirmar o ativo oficial do "G" colorido do Google para o núcleo do radar do Hero (hoje é um placeholder — a letra "G" genérica em branco, sem depender de nenhum arquivo) — se a letra genérica for suficiente, este item pode ser fechado sem ativo nenhum
-- [ ] Autenticar o GitHub CLI nesta máquina (`gh auth login`) para permitir o `git push` dos commits já feitos localmente para `github.com/EricAugusto93/Site360-filmes.git`
+- [ ] Autenticar o GitHub CLI nesta máquina (`gh auth login`) para sincronizar commits antigos com `github.com/EricAugusto93/Site360-filmes.git` — **legado/obsoleto**: esse repositório não é mais o usado em produção desde que `suite360-landing` (remoto `github-new`) foi criado e conectado à Vercel; não bloqueia nada, não precisa ser resolvido para o lançamento
 - [ ] Revisão cross-browser e cross-device em ambiente real
 - [ ] Fazer QA final no domínio real, após todo o resto acima estar configurado
+
+---
+
+## FASE 17 — GO-LIVE / fechamento das pendências reais
+
+> Auditoria de todas as pendências restantes, sem reabrir áreas já concluídas (landing, design system, responsividade, diagnóstico, WhatsApp, GTM, GA4, consentimento, SEO técnico estrutural, acessibilidade, performance). Alterações desta fase são só de documentação — nenhum código de produto foi alterado.
+
+**Achados reais (documentação desatualizada corrigida acima, no GO-LIVE):**
+
+- [x] O item de favicon estava desatualizado: dizia "nenhum favicon é exibido", mas `app/icon.png`/`app/apple-icon.png` existem e estão ativos em produção — confirmado via HTML servido. Testado o conteúdo redimensionado para 32×32 real: o texto do wordmark fica ilegível. Continua como pendência de identidade (não corrigido — exigiria inventar um monograma).
+- [x] O item "gerar novo deploy" já estava resolvido (FASE 15) mas ainda aparecia como pendência no GO-LIVE — corrigido.
+- [x] O item do repositório antigo (`Site360-filmes`) reclassificado como legado/obsoleto — não usado em produção, não bloqueia nada.
+- [x] **Achado novo**: `lib/whatsapp.ts` (`buildDiagnosticMessage`/`buildSpecialistMessage`) usa "Suite360" (sem "Films") nas mensagens reais enviadas ao WhatsApp da empresa, enquanto todo o resto do site (título, Open Graph, rodapé, `alt` da logo) usa "Suite360 Films". Não corrigido — depende de confirmação do nome oficial (ver seção abaixo), instrução explícita de não substituir texto sem autorização.
+- [x] **Achado novo**: `Footer.tsx` exibe `suite360films.com.br` como texto informativo de contato — não é o `NEXT_PUBLIC_SITE_URL` real (que segue ausente) nem foi confirmado como o domínio que será de fato registrado. Não alterado; mapeado na lista de itens dependentes do domínio abaixo.
+- [x] `NEXT_PUBLIC_SITE_URL` confirmado ausente em produção (não listado em `vercel env ls`) — comportamento seguro confirmado (fallback `localhost:3000` + aviso no log do servidor, `lib/site.ts`), site funcional normalmente no domínio Vercel atual.
+- [x] Produção confirmada: HTTP 200, deployment atual (`dpl_EwVC1jSjuqM2SwCsntDsy9hQKMcD`) corresponde ao `main` local (HEAD idêntico ao `github-new/main`), nenhuma alteração de código local esquecida (só documentação), nenhuma env hardcoded, nenhum arquivo de QA temporário no repositório.
+- [x] Estrutura para Política de Privacidade confirmada pronta e sem link quebrado: `Footer.tsx`'s `legalLinks`/`ConsentBanner` não referenciam nenhuma rota — array vazio, nada renderiza até o texto real ser aprovado; nenhuma rota `/privacidade`/`/termos` existe (nem deveria, ainda).
+- [x] Lint, TypeScript e build de produção sem erros (nenhum código de produto alterado, apenas confirmação)
+- [ ] Validação do usuário
+
+**Ver classificação completa (bloqueia/recomendado/pode entrar depois/concluído) e a lista de materiais/decisões do cliente no relatório desta fase, entregue diretamente à parte interessada.**
+
+---
+
+## MATERIAIS / DECISÕES NECESSÁRIAS DO CLIENTE
+
+- [ ] Domínio oficial (compra/definição) + confirmar se `suite360films.com.br` (hoje só texto no rodapé) é o domínio real a ser usado
+- [ ] Confirmação do nome oficial da marca: "Suite360 Films" (usado na maior parte do site) vs. "Suite360" (usado nas mensagens de WhatsApp em `lib/whatsapp.ts`) — qual é o correto para as mensagens?
+- [ ] Símbolo/monograma isolado para favicon (32×32) — o wordmark completo fica ilegível nesse tamanho
+- [ ] Política de Privacidade aprovada (texto jurídico real)
+- [ ] Fotos reais do Display NFC (2–4 fotos, proporção 4:3 ou 1:1, fundo neutro — ver `PLANEJAMENTO.md`, seção 14.12)
+- [ ] Material real do relatório de entrega (2–3 imagens, sem dado de cliente visível — ver `PLANEJAMENTO.md`, seção 14.12)
+- [ ] Depoimentos/provas sociais autorizados, se e quando existirem (não bloqueia lançamento)
+- [ ] Confirmar CNPJ/endereço oficial, se desejado no rodapé (`institutionalDetails` em `Footer.tsx`, mecanismo já pronto, hoje vazio)
+- [ ] Confirmar/fornecer o "G" colorido oficial do Google para o núcleo do radar do Hero, se preferir ao invés do placeholder genérico atual (opcional)
 
 ---
 
