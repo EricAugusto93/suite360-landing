@@ -593,7 +593,7 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 - [x] O item de favicon estava desatualizado: dizia "nenhum favicon é exibido", mas `app/icon.png`/`app/apple-icon.png` existem e estão ativos em produção — confirmado via HTML servido. Testado o conteúdo redimensionado para 32×32 real: o texto do wordmark fica ilegível. Continua como pendência de identidade (não corrigido — exigiria inventar um monograma).
 - [x] O item "gerar novo deploy" já estava resolvido (FASE 15) mas ainda aparecia como pendência no GO-LIVE — corrigido.
 - [x] O item do repositório antigo (`Site360-filmes`) reclassificado como legado/obsoleto — não usado em produção, não bloqueia nada.
-- [x] **Achado novo**: `lib/whatsapp.ts` (`buildDiagnosticMessage`/`buildSpecialistMessage`) usa "Suite360" (sem "Films") nas mensagens reais enviadas ao WhatsApp da empresa, enquanto todo o resto do site (título, Open Graph, rodapé, `alt` da logo) usa "Suite360 Films". Não corrigido — depende de confirmação do nome oficial (ver seção abaixo), instrução explícita de não substituir texto sem autorização.
+- [x] **Achado corrigido** (ajuste pós-FASE 17): `lib/whatsapp.ts` (`buildDiagnosticMessage`/`buildSpecialistMessage`) usava "Suite360" (sem "Films") nas mensagens reais enviadas ao WhatsApp da empresa, enquanto todo o resto do site já usava "Suite360 Films". Decisão de naming confirmada pelo usuário ("Suite360 Films" é o nome oficial) — as duas mensagens corrigidas; busca global confirmou nenhuma outra ocorrência pública remanescente.
 - [x] **Achado novo**: `Footer.tsx` exibe `suite360films.com.br` como texto informativo de contato — não é o `NEXT_PUBLIC_SITE_URL` real (que segue ausente) nem foi confirmado como o domínio que será de fato registrado. Não alterado; mapeado na lista de itens dependentes do domínio abaixo.
 - [x] `NEXT_PUBLIC_SITE_URL` confirmado ausente em produção (não listado em `vercel env ls`) — comportamento seguro confirmado (fallback `localhost:3000` + aviso no log do servidor, `lib/site.ts`), site funcional normalmente no domínio Vercel atual.
 - [x] Produção confirmada: HTTP 200, deployment atual (`dpl_EwVC1jSjuqM2SwCsntDsy9hQKMcD`) corresponde ao `main` local (HEAD idêntico ao `github-new/main`), nenhuma alteração de código local esquecida (só documentação), nenhuma env hardcoded, nenhum arquivo de QA temporário no repositório.
@@ -608,7 +608,7 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 ## MATERIAIS / DECISÕES NECESSÁRIAS DO CLIENTE
 
 - [ ] Domínio oficial (compra/definição) + confirmar se `suite360films.com.br` (hoje só texto no rodapé) é o domínio real a ser usado
-- [ ] Confirmação do nome oficial da marca: "Suite360 Films" (usado na maior parte do site) vs. "Suite360" (usado nas mensagens de WhatsApp em `lib/whatsapp.ts`) — qual é o correto para as mensagens?
+- [x] Confirmação do nome oficial da marca — **resolvido**: "Suite360 Films" é o nome adotado em todas as mensagens públicas, incluindo as de WhatsApp (`lib/whatsapp.ts`, antes usava só "Suite360"). Busca global confirmou não haver mais nenhuma outra ocorrência pública de "Suite360" isolado (a única remanescente é em `app/dev/design-system/page.tsx`, página não pública — bloqueada em `robots.txt` e retorna 404 em produção)
 - [ ] Símbolo/monograma isolado para favicon (32×32) — o wordmark completo fica ilegível nesse tamanho
 - [ ] Política de Privacidade aprovada (texto jurídico real)
 - [ ] Fotos reais do Display NFC (2–4 fotos, proporção 4:3 ou 1:1, fundo neutro — ver `PLANEJAMENTO.md`, seção 14.12)

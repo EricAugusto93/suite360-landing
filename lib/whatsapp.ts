@@ -23,7 +23,7 @@ export function buildDiagnosticMessage(data: DiagnosticData): string {
   const segment = resolveSegmentLabel(data);
   const stateLabel = resolveStateLabel(data.estado);
   const location = stateLabel ? `${data.city} - ${stateLabel}` : data.city;
-  return `Olá! Vim pela página da Suite360 e quero receber meu Diagnóstico Gratuito do Perfil da Empresa no Google. Minha empresa é ${data.companyName}, do segmento ${segment}, em ${location}.`;
+  return `Olá! Vim pela página da Suite360 Films e quero receber meu Diagnóstico Gratuito do Perfil da Empresa no Google. Minha empresa é ${data.companyName}, do segmento ${segment}, em ${location}.`;
 }
 
 /**
@@ -32,7 +32,7 @@ export function buildDiagnosticMessage(data: DiagnosticData): string {
  * finge que um diagnostico foi realizado.
  */
 export function buildSpecialistMessage(): string {
-  return "Olá! Vim pela página da Suite360 e gostaria de conversar com um especialista sobre o Perfil da minha empresa no Google.";
+  return "Olá! Vim pela página da Suite360 Films e gostaria de conversar com um especialista sobre o Perfil da minha empresa no Google.";
 }
 
 /**
