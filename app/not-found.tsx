@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { BackHomeLink } from "@/components/ui/BackHomeLink";
 import { Container } from "@/components/ui/Container";
-import { TrackedCtaLink } from "@/components/ui/TrackedCtaLink";
 
 export const metadata: Metadata = {
   title: "Página não encontrada — Suite360 Films",
@@ -25,16 +25,7 @@ export default function NotFound() {
         O endereço pode ter mudado ou nunca ter existido. Volte para a página
         inicial para continuar.
       </p>
-      <TrackedCtaLink
-        href="/"
-        source="not_found"
-        destination="home"
-        variant="primary"
-        size="lg"
-        className="mt-2"
-      >
-        Voltar para a página inicial
-      </TrackedCtaLink>
+      <BackHomeLink />
     </Container>
   );
 }

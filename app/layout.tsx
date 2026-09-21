@@ -36,8 +36,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Suite360 Films",
   description,
+  // `siteUrl` absoluto (nao "/") de proposito: "/" resolvido contra
+  // `metadataBase` sempre "reseta" para a raiz do host (regra de resolucao
+  // de URL relativa), ignorando qualquer path do proprio `metadataBase` —
+  // inofensivo enquanto o site vive na raiz do dominio (Vercel), mas
+  // produziria um canonical ERRADO (raiz do dominio, nao a landing) no
+  // export estatico publicado em `/Google` (ver next.config.ts). Usar
+  // `siteUrl` direto funciona corretamente nos dois cenarios.
   alternates: {
-    canonical: "/",
+    canonical: siteUrl,
   },
   // Favicon/apple-touch-icon agora vem dos arquivos de convencao do App
   // Router (app/icon.png, app/apple-icon.png — gerados a partir da logo

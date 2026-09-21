@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
+import { basePath } from "@/lib/basePath";
 import { cn } from "@/lib/cn";
 import { useIsMobileViewport } from "@/lib/useIsMobileViewport";
 import {
@@ -347,7 +348,7 @@ export function HeroVisual() {
         />
         <div className="relative flex h-full w-full items-center justify-center">
           <Image
-            src="/images/google-g.png"
+            src={`${basePath}/images/google-g.png`}
             alt="Google"
             width={1200}
             height={1200}

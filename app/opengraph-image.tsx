@@ -5,6 +5,10 @@ import { ImageResponse } from "next/og";
 export const alt = "Suite360 Films — presença e desempenho local no Google.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+// Exigido pelo Next.js para `output: "export"` (rota de imagem gerada por
+// codigo, sem parametros dinamicos) — sem isso o export estatico falha.
+// Nao muda nada no build normal: a rota ja era estatica por padrao.
+export const dynamic = "force-static";
 
 /**
  * Imagem de compartilhamento gerada por codigo. Usa a logo oficial

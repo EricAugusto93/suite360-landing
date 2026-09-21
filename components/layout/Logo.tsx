@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { basePath } from "@/lib/basePath";
 
 /**
  * Logo oficial — lockup completo "Suite360 Films" + "A nova perspectiva.",
@@ -43,7 +44,7 @@ export function Logo() {
       className="focus-visible:ring-primary focus-visible:ring-offset-background inline-flex w-fit shrink-0 items-center rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     >
       <Image
-        src="/brand/suite360-wordmark-v2.png"
+        src={`${basePath}/brand/suite360-wordmark-v2.png`}
         alt="Suite360 Films — A nova perspectiva."
         width={840}
         height={387}
