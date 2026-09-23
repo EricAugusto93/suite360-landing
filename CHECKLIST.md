@@ -559,10 +559,10 @@
 
 Nenhum destes itens pode ser marcado como concluído pelo código — todos dependem de uma decisão ou material do cliente.
 
-- [ ] Definir domínio oficial
-- [ ] Configurar `NEXT_PUBLIC_SITE_URL` no ambiente de produção
+- [x] Definir domínio oficial — **resolvido**: `https://google.suite360films.com`, configurado como domínio de produção na Vercel, HTTP 200 confirmado ao vivo
+- [x] Configurar `NEXT_PUBLIC_SITE_URL` no ambiente de produção — **resolvido**: `https://google.suite360films.com` na Vercel (Production). Achado real corrigido no processo: o primeiro valor salvo continha um BOM invisível (`﻿`) por causa de como o PowerShell canaliza texto para `vercel env add` via stdin — quebrava `new URL(...)` em `lib/site.ts` silenciosamente, caindo no fallback `localhost`. Corrigido usando `vercel env add --value "..."` (sem stdin); canonical/sitemap/robots/OG confirmados corretos em produção depois do redeploy
 - [x] Variante da logo adequada a fundo escuro — resolvido: `public/brand/suite360-wordmark-v2.png` (lockup completo, corrigido para transparência real e texto branco/legível sobre o header quase preto), aplicada em `Logo.tsx`
-- [ ] **Fornecer um símbolo/monograma isolado adequado a favicon 32×32** — item desatualizado nesta lista: `app/icon.png` (256×256) e `app/apple-icon.png` (180×180) existem e ESTÃO sendo servidos em produção (confirmado via inspeção do HTML: `<link rel="icon" href="/icon.png".../>`), não mais suprimidos como documentado antes. Porém o conteúdo é o lockup completo ("Suite360 Films" + tagline) sobre textura em mármore — renderizado em 32×32 real (testado), o texto fica ilegível, só um bloco escuro reconhecível. Não corrigido nesta fase (exigiria um monograma novo, que não deve ser inventado) — ver FASE 17
+- [x] Fornecer um símbolo/monograma isolado adequado a favicon 32×32 — **resolvido**: favicon redesenhado como distintivo circular "360" com glow neon azul (duas iterações — ver seção "Favicon" abaixo), legibilidade real confirmada em 16/32/48/180px, ao vivo em produção (`app/icon.png`, `app/apple-icon.png`, `app/favicon.ico`)
 - [x] Divergência de nome "Suite" vs. "Suite360 Films" — resolvida: o novo arquivo de logo usa o lockup completo ("Suite360 Films" + "A nova perspectiva."), não mais só o ícone parcial "Suite" da FASE 13
 - [x] Fornecer número de WhatsApp Business — fornecido (assumido Brasil/DDD 41; confirmar se estiver errado), testado e funcionando (Hero, botão flutuante, confirmação do diagnóstico). Número real não fica neste documento por segurança — existe apenas como `NEXT_PUBLIC_WHATSAPP_NUMBER` (env var na Vercel, ver FASE 14)
 - [x] Configurar `NEXT_PUBLIC_WHATSAPP_NUMBER` — feito localmente em `.env.local` (nunca commitado) **e em produção na Vercel** (Environment: Production, FASE 14), com redeploy e QA completo aprovados
@@ -605,11 +605,48 @@ Nenhum destes itens pode ser marcado como concluído pelo código — todos depe
 
 ---
 
+## Trabalho fora do fluxo de fases — Domínio oficial e favicon final
+
+> Sequência de ajustes pontuais após a FASE 17, cada um validado e implantado antes do próximo. Todos os commits enviados ao `github-new` e implantados em produção na Vercel.
+
+**Publicação estática em `/Google` (HostGator) — preparada, não é mais a estratégia de produção:**
+
+- [x] Auditoria técnica completa de compatibilidade com `output: "export"` + `basePath` — app já era 100% estático (nenhuma API Route, Server Action, middleware)
+- [x] Suporte opcional adicionado ao projeto, isolado atrás de `STATIC_EXPORT=true`/`NEXT_PUBLIC_BASE_PATH` (nunca ativo no build normal da Vercel — confirmado com rebuild limpo a cada rodada seguinte)
+- [x] **3 bugs reais encontrados e corrigidos** durante a validação do build estático: (1) `opengraph-image.tsx`/`robots.ts`/`sitemap.ts` exigem `export const dynamic = "force-static"` sob export estático; (2) `next/image` com `images.unoptimized: true` não aplica `basePath` ao `src` automaticamente — corrigido com `lib/basePath.ts` e prefixo manual em `Logo.tsx`/`HeroVisual.tsx`; (3) `app/not-found.tsx` usava um `<a href="/">` cru (via `Button`/`TrackedCtaLink`) que não respeita `basePath` — substituído por `components/ui/BackHomeLink.tsx` (usa `next/link`)
+- [x] `alternates.canonical` corrigido de `"/"` para `siteUrl` absoluto em `app/layout.tsx` (bug real: `"/"` resolvido contra um `metadataBase` com subpath sempre "reseta" para a raiz do domínio — corrige tanto o cenário `/Google` quanto o domínio normal)
+- [x] Build estático gerado e validado localmente de ponta a ponta (servido sob `/Google/` real, zero erro de console, zero requisição falhando, WhatsApp/GTM/âncoras funcionando)
+- [x] **Investigação de um 404 real reportado após a publicação manual no cPanel** — não foi possível reproduzir localmente (3 métodos de servidor estático diferentes testados, 2 hipóteses técnicas descartadas com evidência); diagnóstico entregue ao usuário sem aplicar correção às cegas
+- [x] `suite360-google.zip` gerado (conteúdo do `out/` pronto para upload) — **decisão final do cliente**: o domínio oficial passou a ser o subdomínio `google.suite360films.com`, apontado diretamente para a Vercel — a publicação estática na HostGator deixou de ser necessária. O suporte a `STATIC_EXPORT` permanece no projeto (inofensivo, desligado por padrão) caso seja útil no futuro
+
+**Domínio oficial:**
+
+- [x] `https://google.suite360films.com` confirmado como domínio de produção (Vercel Domains, HTTP 200)
+- [x] `NEXT_PUBLIC_SITE_URL` configurada — achado real corrigido: o primeiro valor salvo via `stdin` do PowerShell continha um BOM invisível, quebrando a validação de URL silenciosamente (fallback `localhost` mesmo com a variável "presente"); corrigido com `vercel env add --value`, sem passar por `stdin`
+- [x] Canonical, sitemap, robots, Open Graph e JSON-LD confirmados corretos em produção (todos já derivavam de `siteUrl` dinamicamente — nenhuma mudança de código extra necessária além da correção do canonical feita na rodada do `/Google`)
+- [x] GTM e WhatsApp confirmados intactos após a mudança de domínio
+
+**Favicon — versão final (2 rodadas de refinamento visual):**
+
+- [x] 1ª versão: círculo azul principal chapado + "360" — legível, mas considerado "pouco vivo" pelo usuário
+- [x] 2ª versão (aprovada, ao vivo): distintivo circular com anel externo brilhante, fundo navy escuro em gradiente, "360" bem maior/mais grosso (engrossamento sintético por dilatação — mesmo traçado original, sem redesenhar letra) e glow neon azul em duas camadas (mesma técnica de `.s360-glow-blue` já usada no site inteiro). Legibilidade real confirmada em 16×16/32×32/48×48/180×180
+- [x] `app/favicon.ico` construído manualmente como ICO multi-resolução (16/32/48, entradas PNG), verificado carregável antes de cada commit
+- [x] Lint, TypeScript e build limpos em cada rodada
+
+**Achado real pendente, não corrigido (fora do escopo pedido em cada rodada):**
+
+- [ ] `Footer.tsx` exibe `suite360films.com.br` como texto de contato — o domínio real em uso é **`google.suite360films.com`** (subdomínio, `.com`, não `.com.br`). Os dois textos não coincidem. Não alterado — depende de confirmação do usuário sobre o texto correto a exibir
+
+- [ ] Validação do usuário
+
+---
+
 ## MATERIAIS / DECISÕES NECESSÁRIAS DO CLIENTE
 
-- [ ] Domínio oficial (compra/definição) + confirmar se `suite360films.com.br` (hoje só texto no rodapé) é o domínio real a ser usado
+- [x] Domínio oficial — **resolvido**: `https://google.suite360films.com`, ao vivo na Vercel
+- [ ] Confirmar o texto de contato exibido no rodapé (`Footer.tsx` mostra `suite360films.com.br`, mas o domínio real em uso é `google.suite360films.com` — os dois não coincidem)
 - [x] Confirmação do nome oficial da marca — **resolvido**: "Suite360 Films" é o nome adotado em todas as mensagens públicas, incluindo as de WhatsApp (`lib/whatsapp.ts`, antes usava só "Suite360"). Busca global confirmou não haver mais nenhuma outra ocorrência pública de "Suite360" isolado (a única remanescente é em `app/dev/design-system/page.tsx`, página não pública — bloqueada em `robots.txt` e retorna 404 em produção)
-- [ ] Símbolo/monograma isolado para favicon (32×32) — o wordmark completo fica ilegível nesse tamanho
+- [x] Símbolo/monograma para favicon — **resolvido**: distintivo circular "360" com glow neon azul, ao vivo em produção
 - [ ] Política de Privacidade aprovada (texto jurídico real)
 - [ ] Fotos reais do Display NFC (2–4 fotos, proporção 4:3 ou 1:1, fundo neutro — ver `PLANEJAMENTO.md`, seção 14.12)
 - [ ] Material real do relatório de entrega (2–3 imagens, sem dado de cliente visível — ver `PLANEJAMENTO.md`, seção 14.12)
